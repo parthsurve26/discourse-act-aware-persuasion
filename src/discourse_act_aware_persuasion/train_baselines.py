@@ -56,9 +56,18 @@ def train(dataset: str, seed: int = 42, output_dir: Path = MODELS_DIR) -> dict:
     else:
         model = text_baseline_pipeline()
 
-    model.fit(train_df, train_df[cfg["label_col"]])
-    val_pred = model.predict(val_df)
-    test_pred = model.predict(test_df)
+    if cfg["numeric"]:
+        train_x = train_df
+        val_x = val_df
+        test_x = test_df
+    else:
+        train_x = train_df[cfg["text_col"]]
+        val_x = val_df[cfg["text_col"]]
+        test_x = test_df[cfg["text_col"]]
+
+    model.fit(train_x, train_df[cfg["label_col"]])
+    val_pred = model.predict(val_x)
+    test_pred = model.predict(test_x)
 
     val_metrics = classification_metrics(val_df[cfg["label_col"]], val_pred, labels=cfg["labels"])
     test_metrics = classification_metrics(test_df[cfg["label_col"]], test_pred, labels=cfg["labels"])
@@ -104,4 +113,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

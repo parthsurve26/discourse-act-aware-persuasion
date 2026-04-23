@@ -44,6 +44,11 @@ def preprocess_winning_arguments(output_path: Path, seed: int = 42) -> Path:
 def preprocess_coarse_discourse(output_path: Path, seed: int = 42) -> Path:
     corpus = load_corpus(COARSE_DISCOURSE_DOWNLOAD_NAME)
     df = build_coarse_discourse_dataframe(corpus, seed=seed)
+    if df.empty or "split" not in df.columns:
+        raise ValueError(
+            "Coarse Discourse preprocessing produced no split column. "
+            "Check that the corpus metadata contains majority_type labels."
+        )
     write_parquet(df, output_path)
     write_json(
         REPORTS_DIR / "coarse_discourse_preprocess_summary.json",

@@ -8,16 +8,27 @@ import pandas as pd
 from ..splits import assign_group_split, SplitConfig
 
 
+def _clean_text(text: object) -> str:
+    if text is None:
+        return ""
+    text = str(text).strip()
+    if text.lower() == "none":
+        return ""
+    return text
+
+
 def build_coarse_discourse_dataframe(corpus, seed: int = 42) -> pd.DataFrame:
     rows: List[Dict[str, Any]] = []
     for convo in corpus.iter_conversations():
         subreddit = convo.meta.get("subreddit")
         title = convo.meta.get("title", "")
         for utt in convo.iter_utterances():
-            label = utt.meta.get("majority type")
+            label = utt.meta.get("majority_type")
             if not label:
                 continue
-            text = (utt.text or "").strip()
+            text = _clean_text(utt.text)
+            if not text:
+                continue
             rows.append(
                 {
                     "conversation_id": convo.id,
@@ -26,10 +37,10 @@ def build_coarse_discourse_dataframe(corpus, seed: int = 42) -> pd.DataFrame:
                     "subreddit": subreddit,
                     "title": title,
                     "reply_to": utt.reply_to,
-                    "comment_depth": utt.meta.get("comment_depth"),
+                    "post_depth": utt.meta.get("post_depth"),
                     "majority_link": utt.meta.get("majority_link"),
-                    "annotation_types": json.dumps(utt.meta.get("annotation_types"), ensure_ascii=True),
-                    "annotation_links": json.dumps(utt.meta.get("annotation_links"), ensure_ascii=True),
+                    "annotation_types": json.dumps(utt.meta.get("annotation-types"), ensure_ascii=True),
+                    "annotation_links": json.dumps(utt.meta.get("annotation-links"), ensure_ascii=True),
                     "ups": utt.meta.get("ups"),
                     "text": text,
                     "input_text": text,
