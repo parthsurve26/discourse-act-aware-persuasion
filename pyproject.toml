@@ -1,16 +1,56 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
 
 [project]
-name = "discourse-act-aware-persuasion-modeling"
+name = "daspm"
 version = "0.1.0"
-description = "Research starter repo for CMV persuasion and discourse act modeling"
+description = "Discourse-Act Sequential Persuasion Model for r/ChangeMyView"
+readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "MIT" }
 
-[tool.setuptools]
-package-dir = {"" = "src"}
+authors = [
+  { name = "Vijay" },
+]
+
+dependencies = [
+  "convokit>=4.0.0",
+  "torch>=2.0.0",
+  "transformers>=4.0.0",
+  "scikit-learn>=1.3.0",
+  "pandas>=2.0.0",
+  "pyarrow>=15.0.0",
+  "matplotlib>=3.7.0",
+  "tqdm>=4.66.0",
+  "numpy>=1.24.0",
+  "joblib>=1.3.0",
+  "nltk>=3.8.0",
+  "spacy>=3.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4.0",
+  "pytest-cov>=4.1.0",
+  "black>=23.0.0",
+  "ruff>=0.1.0",
+  "ipykernel>=6.0.0",
+  "jupyter>=1.0.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+select = ["E", "F", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=src --cov-report=term-missing"

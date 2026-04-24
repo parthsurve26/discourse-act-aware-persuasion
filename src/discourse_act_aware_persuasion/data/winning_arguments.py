@@ -113,6 +113,16 @@ def build_winning_arguments_dataframe(corpus, seed: int = 42) -> pd.DataFrame:
 
     df = pd.DataFrame(rows)
     if df.empty:
+        df = pd.DataFrame(
+            columns=[
+                "conversation_id", "prediction_unit", "pair_id",
+                "argument_thread_id", "labeled_utterance_ids", "speaker_ids",
+                "op_user_id", "op_title", "op_text_body",
+                "conversation_pair_ids", "text", "input_text", "label",
+                "train_flag", "num_labeled_utterances", "num_chars",
+                "num_words", "split",
+            ]
+        )
         return df
     return assign_holdout_split(
         df=df,
