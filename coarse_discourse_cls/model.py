@@ -1,7 +1,7 @@
 """
 BERT-based Discourse Act Classifier
-Labels: question, answer, announcement, agreement, disagreement,
-        appreciation, elaboration, humor, other
+Labels: announcement, elaboration, humor, appreciation, question,
+        answer, agreement, negativereaction, disagreement, other
 """
 
 import torch
@@ -12,19 +12,21 @@ from typing import List, Dict, Optional, Tuple
 import numpy as np
 import pandas as pd
 from transformers import get_linear_schedule_with_warmup
+from huggingface_hub import hf_hub_download
 # ─────────────────────────────────────────────
 # 1. Label definitions
 # ─────────────────────────────────────────────
 
 LABELS = [
-    "question",
-    "answer",
     "announcement",
-    "agreement",
-    "disagreement",
-    "appreciation",
     "elaboration",
     "humor",
+    "appreciation",
+    "question",
+    "answer",
+    "agreement",
+    "negativereaction",
+    "disagreement",
     "other",
 ]
 NUM_LABELS = len(LABELS)
@@ -41,7 +43,7 @@ class BertDiscourseClassifier(nn.Module):
     BERT encoder + classification head for discourse-act classification.
 
     Architecture:
-        BERT [CLS] token → Dropout → Linear(768 → 256) → GELU → Dropout → Linear(256 → 9)
+        BERT [CLS] token → Dropout → Linear(768 → 256) → GELU → Dropout → Linear(256 → 10)
     """
 
     def __init__(
@@ -50,14 +52,17 @@ class BertDiscourseClassifier(nn.Module):
         num_labels: int = NUM_LABELS,
         dropout_prob: float = 0.3,
         freeze_bert_layers: int = 0,   # 0 = fine-tune all; N = freeze first N encoder layers
+        class_embedding_dim: int = 64, # size of the learned per-label "discourse act" embedding
     ):
         super().__init__()
         self.num_labels = num_labels
+        self.class_embedding_dim = class_embedding_dim
 
         # BERT backbone
         self.bert = BertModel.from_pretrained(bert_model_name)
 
         hidden_size = self.bert.config.hidden_size  # 768 for bert-base
+        self.hidden_size = hidden_size
 
         # Optionally freeze early BERT layers to speed up training
         if freeze_bert_layers > 0:
@@ -72,6 +77,18 @@ class BertDiscourseClassifier(nn.Module):
             nn.Linear(256, num_labels),
         )
 
+        # Learned embedding for each discourse-act label.
+        # The soft (probability-weighted) lookup of this table acts as the
+        # "classification embedding" that gets concatenated with the comment
+        # embedding to form a discourse-aware latent representation.
+        self.class_embeddings = nn.Embedding(num_labels, class_embedding_dim)
+        nn.init.normal_(self.class_embeddings.weight, mean=0.0, std=0.02)
+
+    @property
+    def latent_dim(self) -> int:
+        """Dimensionality of the fused (comment + classification) representation."""
+        return self.hidden_size + self.class_embedding_dim
+
     def _freeze_layers(self, n: int) -> None:
         """Freeze embeddings + first n encoder layers."""
         for param in self.bert.embeddings.parameters():
@@ -79,6 +96,28 @@ class BertDiscourseClassifier(nn.Module):
         for layer in self.bert.encoder.layer[:n]:
             for param in layer.parameters():
                 param.requires_grad = False
+
+    def _class_embedding_from_logits(
+        self,
+        logits: torch.Tensor,
+        labels: Optional[torch.Tensor] = None,
+        use_gold_when_available: bool = False,
+    ) -> torch.Tensor:
+        """
+        Build a per-example classification embedding from logits.
+
+        - During training (or when explicitly requested), if gold labels are
+          provided we look up the embedding of the true label. This gives a
+          clean teacher-forced signal so the class embedding table actually
+          carries discourse-act semantics.
+        - Otherwise we use a soft, probability-weighted mixture of class
+          embeddings. This is fully differentiable and works at inference
+          time when no labels are available.
+        """
+        if use_gold_when_available and labels is not None:
+            return self.class_embeddings(labels)  # (B, class_embedding_dim)
+        probs = torch.softmax(logits, dim=-1)  # (B, num_labels)
+        return probs @ self.class_embeddings.weight  # (B, class_embedding_dim)
 
     def forward(
         self,
@@ -89,8 +128,14 @@ class BertDiscourseClassifier(nn.Module):
     ) -> Dict[str, torch.Tensor]:
         """
         Returns a dict with:
-            logits  – (B, num_labels), always present
-            loss    – scalar, only when labels are provided
+            logits          – (B, num_labels), always present
+            cls_embedding   – (B, hidden_size), BERT [CLS] (the "comment embedding")
+            class_embedding – (B, class_embedding_dim), discourse-act embedding
+            latent          – (B, hidden_size + class_embedding_dim),
+                              concatenation of cls_embedding and class_embedding;
+                              this is the discourse-aware comment representation
+                              used for the downstream Winning Arguments task
+            loss            – scalar, only when labels are provided
         """
         outputs = self.bert(
             input_ids=input_ids,
@@ -98,12 +143,28 @@ class BertDiscourseClassifier(nn.Module):
             token_type_ids=token_type_ids,
         )
 
-        # Use [CLS] token representation
-        cls_output = outputs.last_hidden_state[:, 0, :]  # (B, 768)
+        # Use [CLS] token representation as the comment embedding
+        cls_output = outputs.last_hidden_state[:, 0, :]  # (B, hidden_size)
 
         logits = self.classifier(cls_output)  # (B, num_labels)
 
-        result = {"logits": logits}
+        # Use gold labels (when training) so the class-embedding table learns
+        # crisp per-discourse-act semantics; fall back to soft mixture at eval.
+        class_embedding = self._class_embedding_from_logits(
+            logits,
+            labels=labels,
+            use_gold_when_available=self.training,
+        )
+
+        # Discourse-aware comment representation: comment + classification
+        latent = torch.cat([cls_output, class_embedding], dim=-1)
+
+        result = {
+            "logits": logits,
+            "cls_embedding": cls_output,
+            "class_embedding": class_embedding,
+            "latent": latent,
+        }
 
         if labels is not None:
             loss_fn = nn.CrossEntropyLoss()
@@ -128,6 +189,36 @@ class BertDiscourseClassifier(nn.Module):
         probs = torch.softmax(out["logits"], dim=-1)
         preds = probs.argmax(dim=-1)
         return preds, probs
+
+    @torch.no_grad()
+    def encode(
+        self,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
+        token_type_ids: Optional[torch.Tensor] = None,
+    ) -> Dict[str, torch.Tensor]:
+        """
+        Extract the discourse-aware latent representation for a batch of
+        comments. Intended for use as a frozen feature extractor when training
+        a downstream model on the Winning Arguments dataset.
+
+        Returns dict with:
+            latent          – (B, hidden_size + class_embedding_dim)
+            cls_embedding   – (B, hidden_size)
+            class_embedding – (B, class_embedding_dim)
+            probabilities   – (B, num_labels)
+            predicted_ids   – (B,)
+        """
+        self.eval()
+        out = self.forward(input_ids, attention_mask, token_type_ids)
+        probs = torch.softmax(out["logits"], dim=-1)
+        return {
+            "latent":          out["latent"],
+            "cls_embedding":   out["cls_embedding"],
+            "class_embedding": out["class_embedding"],
+            "probabilities":   probs,
+            "predicted_ids":   probs.argmax(dim=-1),
+        }
 
 
 # ─────────────────────────────────────────────
@@ -287,11 +378,7 @@ class DiscoursePredictor:
         self.device = device
         self.max_length = max_length
 
-    def predict(self, texts: List[str]) -> List[Dict]:
-        """
-        Returns a list of dicts:
-            {"label": str, "confidence": float, "probabilities": {label: prob}}
-        """
+    def _tokenize(self, texts: List[str]) -> Dict[str, torch.Tensor]:
         enc = self.tokenizer(
             texts,
             truncation=True,
@@ -299,7 +386,14 @@ class DiscoursePredictor:
             max_length=self.max_length,
             return_tensors="pt",
         )
-        enc = {k: v.to(self.device) for k, v in enc.items()}
+        return {k: v.to(self.device) for k, v in enc.items()}
+
+    def predict(self, texts: List[str]) -> List[Dict]:
+        """
+        Returns a list of dicts:
+            {"label": str, "confidence": float, "probabilities": {label: prob}}
+        """
+        enc = self._tokenize(texts)
 
         pred_ids, probs = self.model.predict(
             enc["input_ids"], enc["attention_mask"], enc["token_type_ids"]
@@ -315,6 +409,65 @@ class DiscoursePredictor:
                 "probabilities": prob_dict,
             })
         return results
+
+    @torch.no_grad()
+    def encode(
+        self,
+        texts: List[str],
+        batch_size: int = 32,
+    ) -> Dict[str, np.ndarray]:
+        """
+        Encode a list of comments into discourse-aware latent representations.
+
+        This is the entry point for downstream use on the Winning Arguments
+        dataset: each comment is mapped to a vector that fuses its BERT
+        comment embedding with the learned discourse-act embedding.
+
+        Returns dict of numpy arrays:
+            latent          – (N, hidden_size + class_embedding_dim)
+            cls_embedding   – (N, hidden_size)
+            class_embedding – (N, class_embedding_dim)
+            probabilities   – (N, num_labels)
+            predicted_ids   – (N,)
+            predicted_label – list[str] of length N
+        """
+        self.model.eval()
+
+        latents, cls_embs, class_embs, all_probs, all_pred_ids = [], [], [], [], []
+        for start in range(0, len(texts), batch_size):
+            batch_texts = texts[start : start + batch_size]
+            enc = self._tokenize(batch_texts)
+            out = self.model.encode(
+                enc["input_ids"],
+                enc["attention_mask"],
+                enc.get("token_type_ids"),
+            )
+            latents.append(out["latent"].cpu().numpy())
+            cls_embs.append(out["cls_embedding"].cpu().numpy())
+            class_embs.append(out["class_embedding"].cpu().numpy())
+            all_probs.append(out["probabilities"].cpu().numpy())
+            all_pred_ids.append(out["predicted_ids"].cpu().numpy())
+
+        if not latents:
+            empty = np.zeros((0, self.model.latent_dim), dtype=np.float32)
+            return {
+                "latent":          empty,
+                "cls_embedding":   np.zeros((0, self.model.hidden_size), dtype=np.float32),
+                "class_embedding": np.zeros((0, self.model.class_embedding_dim), dtype=np.float32),
+                "probabilities":   np.zeros((0, NUM_LABELS), dtype=np.float32),
+                "predicted_ids":   np.zeros((0,), dtype=np.int64),
+                "predicted_label": [],
+            }
+
+        predicted_ids = np.concatenate(all_pred_ids, axis=0)
+        return {
+            "latent":          np.concatenate(latents, axis=0),
+            "cls_embedding":   np.concatenate(cls_embs, axis=0),
+            "class_embedding": np.concatenate(class_embs, axis=0),
+            "probabilities":   np.concatenate(all_probs, axis=0),
+            "predicted_ids":   predicted_ids,
+            "predicted_label": [ID2LABEL[int(i)] for i in predicted_ids],
+        }
 
 
 # ─────────────────────────────────────────────
@@ -336,7 +489,13 @@ def main():
 
     TRAIN_FRAC = 0.85
 
-    discourse_df = pd.read_parquet("../data/processed/coarse_discourse.parquet")
+    HF_DATASET_ID = "Vijayrathank/reddit_discourse_cleaned"
+    parquet_path = hf_hub_download(
+        repo_id=HF_DATASET_ID,
+        filename="data/train-00000-of-00001.parquet",
+        repo_type="dataset",
+    )
+    discourse_df = pd.read_parquet(parquet_path)
 
     rng = np.random.default_rng(42)
     shuffled_idx = rng.permutation(len(discourse_df))
@@ -391,6 +550,9 @@ def main():
         "label2id":             LABEL2ID,
         "id2label":             ID2LABEL,
         "bert_model_name":      BERT_MODEL,
+        "class_embedding_dim":  model.class_embedding_dim,
+        "hidden_size":          model.hidden_size,
+        "latent_dim":           model.latent_dim,
     }, "bert_discourse_classifier.pt")
     print("\nCheckpoint saved to bert_discourse_classifier.pt")
 
@@ -404,6 +566,14 @@ def main():
     print("\n── Inference demo ──")
     for result in predictor.predict(test_texts):
         print(f"  [{result['label']:>14}]  ({result['confidence']:.2%})  \"{result['text']}\"")
+
+    # ── Latent extraction demo (used for the Winning Arguments task) ─────
+    encoded = predictor.encode(test_texts)
+    print("\n── Discourse-aware latent representation ──")
+    print(f"  latent shape:          {encoded['latent'].shape}        "
+          f"(= {model.hidden_size} comment + {model.class_embedding_dim} classification)")
+    print(f"  cls_embedding shape:   {encoded['cls_embedding'].shape}")
+    print(f"  class_embedding shape: {encoded['class_embedding'].shape}")
 
 
 if __name__ == "__main__":
