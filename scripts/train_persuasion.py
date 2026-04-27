@@ -12,6 +12,7 @@ import json
 import sys
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
 from sklearn.metrics import f1_score, roc_auc_score
@@ -79,7 +80,7 @@ def run_epoch(
     loss_fn = nn.BCEWithLogitsLoss()
 
     total_loss = 0.0
-    all_preds, all_probs, all_labels = [], [], []
+    all_probs, all_labels = [], []
 
     ctx = torch.enable_grad() if train else torch.no_grad()
     with ctx:
@@ -99,16 +100,37 @@ def run_epoch(
 
             total_loss += loss.item()
             probs = torch.sigmoid(out["logits"]).detach().cpu().numpy()
-            preds = (probs >= 0.5).astype(int)
             all_probs.extend(probs.tolist())
-            all_preds.extend(preds.tolist())
             all_labels.extend(labels.cpu().numpy().astype(int).tolist())
+
+    all_probs  = np.array(all_probs)
+    all_labels = np.array(all_labels)
+    preds      = (all_probs >= 0.5).astype(int)
 
     return {
         "loss":    total_loss / max(len(loader), 1),
-        "f1":      f1_score(all_labels, all_preds, average="binary", zero_division=0),
+        "f1":      f1_score(all_labels, preds, average="binary", zero_division=0),
         "auc_roc": roc_auc_score(all_labels, all_probs),
+        # Return raw probs + labels so caller can do threshold tuning
+        "_probs":  all_probs,
+        "_labels": all_labels,
     }
+
+
+# ── Threshold tuning ──────────────────────────────────────────────────────────
+
+def tune_threshold(probs: np.ndarray, labels: np.ndarray) -> tuple[float, float]:
+    """
+    Sweep thresholds 0.05–0.95 and return the one that maximises F1.
+    Uses val set probs/labels so the test set is never touched during tuning.
+    """
+    best_thresh, best_f1 = 0.5, 0.0
+    for t in np.arange(0.05, 0.96, 0.01):
+        preds = (probs >= t).astype(int)
+        f1    = f1_score(labels, preds, average="binary", zero_division=0)
+        if f1 > best_f1:
+            best_f1, best_thresh = f1, float(t)
+    return best_thresh, best_f1
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -156,7 +178,7 @@ def main():
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Trainable parameters: {total_params:,}")
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-2)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
 
     run_name   = f"bigru_{args.ablation}_h{args.hidden_dim}_l{args.num_layers}"
@@ -197,10 +219,32 @@ def main():
 
     # ── Test on best checkpoint ───────────────────────────────────────────────
     model.load_state_dict(torch.load(output_dir / "best_model.pt", map_location=device))
-    test_m = run_epoch(model, loaders["test"], optimizer, device, train=False)
-    print(f"\nTest | f1 {test_m['f1']:.4f}  auc_roc {test_m['auc_roc']:.4f}")
 
-    results = {"args": vars(args), "history": history, "test": test_m}
+    # Tune threshold on val set (never touch test for this)
+    val_m    = run_epoch(model, loaders["val"],  optimizer, device, train=False)
+    best_thresh, val_f1_tuned = tune_threshold(val_m["_probs"], val_m["_labels"])
+    print(f"\nThreshold tuning on val → best threshold={best_thresh:.2f}  val F1={val_f1_tuned:.4f}")
+
+    # Evaluate test at both default (0.5) and tuned threshold
+    test_m   = run_epoch(model, loaders["test"], optimizer, device, train=False)
+    test_preds_tuned = (test_m["_probs"] >= best_thresh).astype(int)
+    test_f1_tuned    = f1_score(test_m["_labels"], test_preds_tuned, average="binary", zero_division=0)
+
+    print(f"Test  | threshold=0.50  f1={test_m['f1']:.4f}  auc={test_m['auc_roc']:.4f}")
+    print(f"Test  | threshold={best_thresh:.2f}  f1={test_f1_tuned:.4f}  auc={test_m['auc_roc']:.4f}")
+
+    results = {
+        "args":             vars(args),
+        "history":          history,
+        "best_val_auc":     best_val_auc,
+        "best_threshold":   best_thresh,
+        "test": {
+            "f1_at_0.5":        test_m["f1"],
+            "f1_at_best_thresh": test_f1_tuned,
+            "auc_roc":          test_m["auc_roc"],
+            "loss":             test_m["loss"],
+        },
+    }
     with open(output_dir / "results.json", "w") as f:
         json.dump(results, f, indent=2)
     print(f"Results saved to {output_dir / 'results.json'}")
