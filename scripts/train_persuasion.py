@@ -163,7 +163,7 @@ def main():
     output_dir = MODELS_DIR / run_name
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    best_val_f1       = 0.0
+    best_val_auc      = 0.0
     epochs_no_improve = 0
     history           = []
 
@@ -183,16 +183,16 @@ def main():
             f"val   loss {val_m['loss']:.4f}  f1 {val_m['f1']:.4f}  auc {val_m['auc_roc']:.4f}"
         )
 
-        if val_m["f1"] > best_val_f1:
-            best_val_f1       = val_m["f1"]
+        if val_m["auc_roc"] > best_val_auc:
+            best_val_auc      = val_m["auc_roc"]
             epochs_no_improve = 0
             torch.save(model.state_dict(), output_dir / "best_model.pt")
-            print(f"  ✓ saved best model (val F1={best_val_f1:.4f})")
+            print(f"  ✓ saved best model (val AUC={best_val_auc:.4f})")
         else:
             epochs_no_improve += 1
             if epochs_no_improve >= args.patience:
                 print(f"  Early stopping at epoch {epoch} "
-                      f"(no val F1 improvement for {args.patience} epochs)")
+                      f"(no val AUC improvement for {args.patience} epochs)")
                 break
 
     # ── Test on best checkpoint ───────────────────────────────────────────────
