@@ -106,7 +106,7 @@ class FrozenDiscourseEncoder(nn.Module):
     def __init__(
         self,
         hf_repo_id: str = "Vijayrathank/discourse_act_classifier",
-        checkpoint_filename: str = "bert_discourse_classifier.pt",
+        checkpoint_filename: str = "model.pt",
         max_length: int = 128,
         local_checkpoint: Optional[str] = None,
     ):
@@ -153,7 +153,7 @@ class FrozenDiscourseEncoder(nn.Module):
         # namespace package (no __init__.py). Add the repo root to sys.path
         # so the import resolves.
         here = Path(__file__).resolve()
-        repo_root = here.parents[4]
+        repo_root = here.parents[3]
         if str(repo_root) not in sys.path:
             sys.path.insert(0, str(repo_root))
 

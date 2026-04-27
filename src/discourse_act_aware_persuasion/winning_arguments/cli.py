@@ -104,7 +104,7 @@ def _add_common_args(p: argparse.ArgumentParser) -> None:
     # Encoder-specific
     p.add_argument("--bert-model-name", default="bert-base-uncased")
     p.add_argument("--discourse-repo-id", default="Vijayrathank/discourse_act_classifier")
-    p.add_argument("--discourse-filename", default="bert_discourse_classifier.pt")
+    p.add_argument("--discourse-filename", default="model.pt")
     p.add_argument("--discourse-local-path", default=None)
 
     # Predict mode

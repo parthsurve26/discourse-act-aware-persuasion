@@ -553,8 +553,8 @@ def main():
         "class_embedding_dim":  model.class_embedding_dim,
         "hidden_size":          model.hidden_size,
         "latent_dim":           model.latent_dim,
-    }, "bert_discourse_classifier.pt")
-    print("\nCheckpoint saved to bert_discourse_classifier.pt")
+    }, "model.pt")
+    print("\nCheckpoint saved to model.pt")
 
     # ── Inference demo ───────────────────────────────────────────────────
     predictor = DiscoursePredictor(model, tokenizer, device)
