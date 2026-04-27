@@ -125,11 +125,13 @@ def main():
     parser.add_argument("--ablation",    default="none",
                         choices=["none", "text_only"],
                         help="Ablation variant to run.")
-    parser.add_argument("--hidden_dim",  type=int, default=256)
-    parser.add_argument("--num_layers",  type=int, default=2)
-    parser.add_argument("--dropout",     type=float, default=0.3)
+    parser.add_argument("--hidden_dim",  type=int, default=128)
+    parser.add_argument("--num_layers",  type=int, default=1)
+    parser.add_argument("--dropout",     type=float, default=0.5)
     parser.add_argument("--lr",          type=float, default=1e-3)
-    parser.add_argument("--epochs",      type=int, default=15)
+    parser.add_argument("--epochs",      type=int, default=30)
+    parser.add_argument("--patience",    type=int, default=5,
+                        help="Early stopping: stop if val F1 does not improve for this many epochs.")
     parser.add_argument("--batch_size",  type=int, default=32)
     parser.add_argument("--seed",        type=int, default=42)
     args = parser.parse_args()
@@ -170,7 +172,8 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Training
-    best_val_f1 = 0.0
+    best_val_f1  = 0.0
+    epochs_no_improve = 0
     history = []
 
     for epoch in range(1, args.epochs + 1):
@@ -190,8 +193,14 @@ def main():
 
         if val_metrics["f1"] > best_val_f1:
             best_val_f1 = val_metrics["f1"]
+            epochs_no_improve = 0
             torch.save(model.state_dict(), output_dir / "best_model.pt")
             print(f"  ✓ saved best model (val F1={best_val_f1:.4f})")
+        else:
+            epochs_no_improve += 1
+            if epochs_no_improve >= args.patience:
+                print(f"  Early stopping at epoch {epoch} (no val F1 improvement for {args.patience} epochs)")
+                break
 
     # Test evaluation on best checkpoint
     model.load_state_dict(torch.load(output_dir / "best_model.pt", map_location=device))
