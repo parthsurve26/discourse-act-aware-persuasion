@@ -34,9 +34,10 @@ class PersuasionDataset(Dataset):
         batch_size: Encoding batch size passed to predictor.encode().
     """
 
-    LATENT_FILE = "latents.npy"
+    LATENT_FILE  = "latents.npy"
     LENGTHS_FILE = "lengths.npy"
-    LABELS_FILE = "labels.npy"
+    LABELS_FILE  = "labels.npy"
+    ACT_IDS_FILE = "act_ids.npy"   # discourse act label ID per comment (for transition attention)
 
     def __init__(
         self,
@@ -48,31 +49,39 @@ class PersuasionDataset(Dataset):
         cache_dir = Path(cache_dir)
         cache_dir.mkdir(parents=True, exist_ok=True)
 
-        latent_path = cache_dir / self.LATENT_FILE
+        latent_path  = cache_dir / self.LATENT_FILE
         lengths_path = cache_dir / self.LENGTHS_FILE
-        labels_path = cache_dir / self.LABELS_FILE
+        labels_path  = cache_dir / self.LABELS_FILE
+        act_ids_path = cache_dir / self.ACT_IDS_FILE
 
-        if latent_path.exists() and lengths_path.exists() and labels_path.exists():
+        all_cached = (latent_path.exists() and lengths_path.exists()
+                      and labels_path.exists() and act_ids_path.exists())
+
+        if all_cached:
             print(f"Loading cached encodings from {cache_dir}")
-            all_latents_flat = np.load(latent_path)
-            self._lengths = np.load(lengths_path).tolist()
-            self._labels = np.load(labels_path).tolist()
+            all_latents_flat    = np.load(latent_path)
+            self._lengths       = np.load(lengths_path).tolist()
+            self._labels        = np.load(labels_path).tolist()
+            all_act_ids_flat    = np.load(act_ids_path)
         else:
             if predictor is None:
                 raise ValueError(f"No cache found at {cache_dir} and predictor is None.")
             print(f"Encoding {len(df)} chains → {cache_dir}")
-            all_latents_flat, self._lengths, self._labels = self._encode(
+            all_latents_flat, all_act_ids_flat, self._lengths, self._labels = self._encode(
                 df, predictor, batch_size
             )
-            np.save(latent_path, all_latents_flat)
+            np.save(latent_path,  all_latents_flat)
             np.save(lengths_path, np.array(self._lengths))
-            np.save(labels_path, np.array(self._labels))
+            np.save(labels_path,  np.array(self._labels))
+            np.save(act_ids_path, all_act_ids_flat)
 
-        # Reconstruct per-chain latent arrays from the flat array
-        self._latents: List[np.ndarray] = []
+        # Reconstruct per-chain arrays from the flat arrays
+        self._latents:  List[np.ndarray] = []
+        self._act_ids:  List[np.ndarray] = []
         offset = 0
         for length in self._lengths:
             self._latents.append(all_latents_flat[offset : offset + length])
+            self._act_ids.append(all_act_ids_flat[offset : offset + length])
             offset += length
 
     @staticmethod
@@ -80,11 +89,12 @@ class PersuasionDataset(Dataset):
         df: pd.DataFrame,
         predictor,
         batch_size: int,
-    ) -> Tuple[np.ndarray, List[int], List[int]]:
-        """Encode all chains, return flat latent array + per-chain lengths + labels."""
-        all_latents: List[np.ndarray] = []
-        lengths: List[int] = []
-        labels: List[int] = []
+    ) -> Tuple[np.ndarray, np.ndarray, List[int], List[int]]:
+        """Encode all chains. Returns flat latents, flat act_ids, lengths, labels."""
+        all_latents:  List[np.ndarray] = []
+        all_act_ids:  List[np.ndarray] = []
+        lengths:      List[int] = []
+        labels:       List[int] = []
 
         for _, row in df.iterrows():
             comments = json.loads(row["comment_texts"])
@@ -93,13 +103,18 @@ class PersuasionDataset(Dataset):
                 comments = [""]
 
             encoded = predictor.encode(comments, batch_size=batch_size)
-            latents = encoded["latent"]  # (num_comments, latent_dim)
 
-            all_latents.append(latents)
+            all_latents.append(encoded["latent"])        # (N, latent_dim)
+            all_act_ids.append(encoded["predicted_ids"]) # (N,)  int64 label IDs
             lengths.append(len(comments))
             labels.append(int(row["label"]))
 
-        return np.concatenate(all_latents, axis=0), lengths, labels
+        return (
+            np.concatenate(all_latents,  axis=0),
+            np.concatenate(all_act_ids,  axis=0),
+            lengths,
+            labels,
+        )
 
     def __len__(self) -> int:
         return len(self._labels)
@@ -107,8 +122,9 @@ class PersuasionDataset(Dataset):
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         return {
             "latents": torch.tensor(self._latents[idx], dtype=torch.float32),
+            "act_ids": torch.tensor(self._act_ids[idx], dtype=torch.long),
             "length":  torch.tensor(self._lengths[idx], dtype=torch.long),
-            "label":   torch.tensor(self._labels[idx], dtype=torch.float32),
+            "label":   torch.tensor(self._labels[idx],  dtype=torch.float32),
         }
 
 
@@ -118,18 +134,28 @@ class PersuasionDataset(Dataset):
 
 def collate_fn(batch: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
     """Pad variable-length chains to the max length in the batch."""
-    latents = [item["latents"] for item in batch]
-    lengths = torch.stack([item["length"] for item in batch])
-    labels = torch.stack([item["label"] for item in batch])
+    latents  = [item["latents"]  for item in batch]
+    act_ids  = [item["act_ids"]  for item in batch]
+    lengths  = torch.stack([item["length"] for item in batch])
+    labels   = torch.stack([item["label"]  for item in batch])
 
-    max_len = int(lengths.max().item())
+    max_len    = int(lengths.max().item())
     latent_dim = latents[0].shape[-1]
 
-    padded = torch.zeros(len(batch), max_len, latent_dim)
-    for i, (lat, length) in enumerate(zip(latents, lengths)):
-        padded[i, : length.item()] = lat
+    padded_latents  = torch.zeros(len(batch), max_len, latent_dim)
+    padded_act_ids  = torch.zeros(len(batch), max_len, dtype=torch.long)  # pad with label 0
 
-    return {"latents": padded, "lengths": lengths, "labels": labels}
+    for i, (lat, act, length) in enumerate(zip(latents, act_ids, lengths)):
+        n = length.item()
+        padded_latents[i, :n] = lat
+        padded_act_ids[i, :n] = act
+
+    return {
+        "latents":  padded_latents,
+        "act_ids":  padded_act_ids,
+        "lengths":  lengths,
+        "labels":   labels,
+    }
 
 
 # ─────────────────────────────────────────────────────────────
