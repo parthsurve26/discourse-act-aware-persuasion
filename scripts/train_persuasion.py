@@ -194,9 +194,10 @@ def main():
         val_m   = run_epoch(model, loaders["val"],   optimizer, device, train=False)
         scheduler.step()
 
+        # Exclude raw prob/label arrays from history (not JSON serialisable)
         row = {"epoch": epoch,
-               **{f"train_{k}": v for k, v in train_m.items()},
-               **{f"val_{k}":   v for k, v in val_m.items()}}
+               **{f"train_{k}": v for k, v in train_m.items() if not k.startswith("_")},
+               **{f"val_{k}":   v for k, v in val_m.items()   if not k.startswith("_")}}
         history.append(row)
 
         print(
