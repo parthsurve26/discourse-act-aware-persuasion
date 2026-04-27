@@ -76,7 +76,7 @@ def _checkpoint_path(variant: str, args) -> Path:
 
 
 def _add_common_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument("--mode", choices=["train", "eval", "predict"], default="train")
+    p.add_argument("--mode", choices=["train", "eval", "predict", "sweep"], default="train")
     p.add_argument("--parquet-path", default=None)
     p.add_argument("--ckpt-path", default=None)
     p.add_argument("--seed", type=int, default=42)
@@ -149,6 +149,19 @@ def run(variant: str, argv: Optional[list] = None) -> None:
     if args.limit > 0:
         splits = {k: v[: args.limit] for k, v in splits.items()}
     print({k: len(v) for k, v in splits.items()})
+
+    if args.mode == "sweep":
+        from .sweep import run_sweep
+        run_sweep(
+            variant=variant,
+            args=args,
+            encoder=encoder,
+            device=device,
+            splits=splits,
+            make_loader=_make_loader,
+            ckpt_path=ckpt_path,
+        )
+        return
 
     if args.mode == "eval":
         if not ckpt_path.exists():
