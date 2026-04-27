@@ -97,7 +97,14 @@ class PersuasionDataset(Dataset):
         labels:       List[int] = []
 
         for _, row in df.iterrows():
-            comments = json.loads(row["comment_texts"])
+            comments  = json.loads(row["comment_texts"])
+            ack_flags = json.loads(row["comment_is_delta_ack"])
+
+            # ── Critical: remove delta-ack comments before encoding ───────
+            # 61% of winning chains contain an OP comment explicitly saying
+            # "∆ you changed my mind." Keeping these causes leakage — the
+            # model learns to detect concession language, not persuasion.
+            comments = [c for c, is_ack in zip(comments, ack_flags) if not is_ack]
             comments = [c.strip() for c in comments if c and c.strip()]
             if not comments:
                 comments = [""]
