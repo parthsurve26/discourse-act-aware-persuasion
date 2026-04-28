@@ -11,7 +11,13 @@ from discourse_act_aware_persuasion.winning_arguments.cli import run
 
 
 if __name__ == "__main__":
-    extra = ["--no-speaker-bias", "--no-distance-bias"]
+    # Best hyperparams from with_discourse sweep, held fixed for fair ablation comparison.
+    extra = [
+        "--no-speaker-bias", "--no-distance-bias",
+        "--lr", "0.0001",
+        "--dropout", "0.1",
+        "--n-layers", "4",
+    ]
     if "--ckpt-path" not in sys.argv:
         extra += ["--ckpt-path", "data/models/winning_args_with_discourse_no_bias.pt"]
     run(variant="with_discourse", argv=sys.argv[1:] + extra)
