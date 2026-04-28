@@ -12,12 +12,13 @@ from sklearn.metrics import (
     f1_score,
     precision_score,
     recall_score,
+    roc_auc_score,
 )
 
 from .utils import ensure_parent, write_json
 
 
-def classification_metrics(y_true, y_pred, labels=None) -> Dict[str, Any]:
+def classification_metrics(y_true, y_pred, labels=None, y_score=None) -> Dict[str, Any]:
     metrics = {
         "accuracy": accuracy_score(y_true, y_pred),
         "macro_f1": f1_score(y_true, y_pred, average="macro", labels=labels),
@@ -31,6 +32,22 @@ def classification_metrics(y_true, y_pred, labels=None) -> Dict[str, Any]:
             y_true, y_pred, labels=labels, zero_division=0, output_dict=True
         ),
     }
+    if y_score is not None:
+        try:
+            if len(set(y_true)) == 2:
+                if getattr(y_score, "ndim", 1) == 2 and y_score.shape[1] >= 2:
+                    metrics["roc_auc"] = roc_auc_score(y_true, y_score[:, 1])
+                else:
+                    metrics["roc_auc"] = roc_auc_score(y_true, y_score)
+            elif getattr(y_score, "ndim", 1) == 2:
+                metrics["roc_auc"] = roc_auc_score(
+                    y_true,
+                    y_score,
+                    multi_class="ovr",
+                    average="macro",
+                )
+        except ValueError:
+            metrics["roc_auc"] = None
     return metrics
 
 
@@ -58,4 +75,3 @@ def plot_confusion_matrix(y_true, y_pred, labels, title: str, path: Path) -> Pat
     fig.savefig(path, dpi=200)
     plt.close(fig)
     return path
-

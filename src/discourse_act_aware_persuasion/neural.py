@@ -472,6 +472,7 @@ def run_epoch(
     total_loss = 0.0
     all_preds: List[int] = []
     all_labels: List[int] = []
+    all_scores: List[np.ndarray] = []
 
     for batch in loader:
         batch = move_batch_to_device(batch, device)
@@ -484,11 +485,14 @@ def run_epoch(
             nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
         total_loss += float(loss.item())
-        preds = outputs["logits"].argmax(dim=-1)
+        probs = torch.softmax(outputs["logits"], dim=-1)
+        preds = probs.argmax(dim=-1)
         all_preds.extend(preds.detach().cpu().tolist())
         all_labels.extend(batch["labels"].detach().cpu().tolist())
+        all_scores.append(probs.detach().cpu().numpy())
 
-    metrics = classification_metrics(all_labels, all_preds)
+    y_score = np.concatenate(all_scores, axis=0) if all_scores else None
+    metrics = classification_metrics(all_labels, all_preds, y_score=y_score)
     metrics["loss"] = total_loss / max(len(loader), 1)
     return metrics
 
@@ -501,7 +505,7 @@ def train_model(
     lr: float,
     weight_decay: float = 0.01,
     device: torch.device | None = None,
-) -> tuple[nn.Module, Dict[str, List[Dict[str, float]]]]:
+) -> tuple[nn.Module, Dict[str, List[Dict[str, float]]], Dict[str, float | int]]:
     device = device or _infer_device()
     model = model.to(device)
     optimizer = torch.optim.AdamW(
@@ -512,6 +516,8 @@ def train_model(
     history: Dict[str, List[Dict[str, float]]] = {"train": [], "val": []}
     best_state = None
     best_val_f1 = float("-inf")
+    best_epoch = 0
+    best_val_metrics: Dict[str, float] | None = None
 
     for epoch in range(epochs):
         train_metrics = run_epoch(model, train_loader, device, optimizer=optimizer)
@@ -520,6 +526,8 @@ def train_model(
         history["val"].append(val_metrics)
         if val_metrics["macro_f1"] > best_val_f1:
             best_val_f1 = val_metrics["macro_f1"]
+            best_epoch = epoch + 1
+            best_val_metrics = dict(val_metrics)
             best_state = {key: value.detach().cpu() for key, value in model.state_dict().items()}
         print(
             f"epoch={epoch + 1} "
@@ -529,7 +537,16 @@ def train_model(
 
     if best_state is not None:
         model.load_state_dict(best_state)
-    return model, history
+    selection = {
+        "best_val_epoch": best_epoch,
+        "best_val_macro_f1": best_val_f1,
+    }
+    if best_val_metrics is not None:
+        selection["best_val_loss"] = float(best_val_metrics["loss"])
+        roc_auc = best_val_metrics.get("roc_auc")
+        if roc_auc is not None:
+            selection["best_val_roc_auc"] = float(roc_auc)
+    return model, history, selection
 
 
 def evaluate_model(model: nn.Module, loader: DataLoader, device: torch.device | None = None) -> Dict[str, float]:

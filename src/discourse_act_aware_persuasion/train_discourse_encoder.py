@@ -87,7 +87,7 @@ def train_discourse_encoder(
         base_model_name=base_model_name,
         num_labels=len(label_to_id),
     )
-    model, history = train_model(
+    model, history, selection = train_model(
         model=model,
         train_loader=train_loader,
         val_loader=val_loader,
@@ -116,6 +116,7 @@ def train_discourse_encoder(
 
     metrics_payload = {
         "history": history,
+        "selection": selection,
         "test": test_metrics,
         "label_distribution": df["label"].value_counts().to_dict(),
         "split_counts": df["split"].value_counts().to_dict(),

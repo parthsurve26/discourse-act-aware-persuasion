@@ -36,6 +36,7 @@ def train_persuasion_model(
     lr: float,
     use_ack_masked: bool,
     local_files_only: bool,
+    freeze_encoder: bool | None,
     train_limit: int | None,
     val_limit: int | None,
     test_limit: int | None,
@@ -73,6 +74,11 @@ def train_persuasion_model(
             )
             use_attention_bias = True
             use_latent_features = True
+        resolved_freeze_encoder = (
+            architecture in {"discourse-attn", "discourse-bilstm-attn"}
+            if freeze_encoder is None
+            else freeze_encoder
+        )
 
         train_loader = make_comment_dataloader(
             splits["train"],
@@ -106,12 +112,12 @@ def train_persuasion_model(
             use_bilstm=architecture in {"fresh-bilstm-attn", "discourse-bilstm-attn"},
             use_attention_bias=use_attention_bias,
             use_latent_features=use_latent_features,
-            freeze_encoder=architecture in {"discourse-attn", "discourse-bilstm-attn"},
+            freeze_encoder=resolved_freeze_encoder,
         )
     else:
         raise ValueError(f"Unknown architecture: {architecture}")
 
-    model, history = train_model(
+    model, history, selection = train_model(
         model=model,
         train_loader=train_loader,
         val_loader=val_loader,
@@ -128,12 +134,14 @@ def train_persuasion_model(
             "model_state_dict": model.state_dict(),
             "base_model_name": base_model_name,
             "history": history,
+            "selection": selection,
             "test_metrics": test_metrics,
         },
     )
     metrics_payload = {
         "architecture": architecture,
         "history": history,
+        "selection": selection,
         "test": test_metrics,
         "checkpoint_path": str(checkpoint_path),
     }
@@ -180,6 +188,12 @@ def main() -> None:
         default=False,
         help="Only load base Transformer/tokenizer files from the local Hugging Face cache.",
     )
+    parser.add_argument(
+        "--freeze-encoder",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Freeze the comment encoder during persuasion training. Defaults to frozen for discourse models and trainable for fresh models.",
+    )
     parser.add_argument("--train-limit", type=int, default=None, help="Optional limit for train rows.")
     parser.add_argument("--val-limit", type=int, default=None, help="Optional limit for validation rows.")
     parser.add_argument("--test-limit", type=int, default=None, help="Optional limit for test rows.")
@@ -202,6 +216,7 @@ def main() -> None:
         lr=args.lr,
         use_ack_masked=args.use_ack_masked,
         local_files_only=args.local_files_only,
+        freeze_encoder=args.freeze_encoder,
         train_limit=args.train_limit,
         val_limit=args.val_limit,
         test_limit=args.test_limit,
