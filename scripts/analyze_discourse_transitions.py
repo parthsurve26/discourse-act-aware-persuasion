@@ -175,7 +175,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--persuasion-repo-id",
                         default="Vijayrathank/persuasion_model_with_discoarse_cls")
-    parser.add_argument("--persuasion-filename", default="model.pt")
+    parser.add_argument("--persuasion-filename", default="winning_args_with_discourse.pt")
     parser.add_argument("--persuasion-local-path", default=None)
     parser.add_argument("--discourse-repo-id",
                         default="Vijayrathank/discourse_act_classifier")
