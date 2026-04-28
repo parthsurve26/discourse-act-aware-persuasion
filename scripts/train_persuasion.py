@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import f1_score, roc_auc_score
+from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 from torch.utils.data import DataLoader
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -109,6 +109,7 @@ def run_epoch(
 
     return {
         "loss":    total_loss / max(len(loader), 1),
+        "acc":     accuracy_score(all_labels, preds),
         "f1":      f1_score(all_labels, preds, average="binary", zero_division=0),
         "auc_roc": roc_auc_score(all_labels, all_probs),
         # Return raw probs + labels so caller can do threshold tuning
@@ -178,6 +179,9 @@ def main():
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Trainable parameters: {total_params:,}")
 
+    # weight_decay increased from 1e-4 → 1e-2: stronger L2 regularisation
+    # to close the train/val gap (train AUC was reaching 0.96+ while val
+    # plateaued at 0.70, indicating the GRU was memorising training chains).
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-2)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
 
@@ -202,8 +206,8 @@ def main():
 
         print(
             f"Epoch {epoch:>2} | "
-            f"train loss {train_m['loss']:.4f}  f1 {train_m['f1']:.4f}  auc {train_m['auc_roc']:.4f} | "
-            f"val   loss {val_m['loss']:.4f}  f1 {val_m['f1']:.4f}  auc {val_m['auc_roc']:.4f}"
+            f"train loss {train_m['loss']:.4f}  acc {train_m['acc']:.4f}  f1 {train_m['f1']:.4f}  auc {train_m['auc_roc']:.4f} | "
+            f"val   loss {val_m['loss']:.4f}  acc {val_m['acc']:.4f}  f1 {val_m['f1']:.4f}  auc {val_m['auc_roc']:.4f}"
         )
 
         if val_m["auc_roc"] > best_val_auc:
@@ -231,8 +235,9 @@ def main():
     test_preds_tuned = (test_m["_probs"] >= best_thresh).astype(int)
     test_f1_tuned    = f1_score(test_m["_labels"], test_preds_tuned, average="binary", zero_division=0)
 
-    print(f"Test  | threshold=0.50  f1={test_m['f1']:.4f}  auc={test_m['auc_roc']:.4f}")
-    print(f"Test  | threshold={best_thresh:.2f}  f1={test_f1_tuned:.4f}  auc={test_m['auc_roc']:.4f}")
+    test_acc_tuned = accuracy_score(test_m["_labels"], test_preds_tuned)
+    print(f"Test  | threshold=0.50  acc={test_m['acc']:.4f}  f1={test_m['f1']:.4f}  auc={test_m['auc_roc']:.4f}")
+    print(f"Test  | threshold={best_thresh:.2f}  acc={test_acc_tuned:.4f}  f1={test_f1_tuned:.4f}  auc={test_m['auc_roc']:.4f}")
 
     results = {
         "args":             vars(args),
@@ -240,10 +245,12 @@ def main():
         "best_val_auc":     best_val_auc,
         "best_threshold":   best_thresh,
         "test": {
-            "f1_at_0.5":        test_m["f1"],
-            "f1_at_best_thresh": test_f1_tuned,
-            "auc_roc":          test_m["auc_roc"],
-            "loss":             test_m["loss"],
+            "acc_at_0.5":        test_m["acc"],
+            "acc_at_best_thresh": test_acc_tuned,
+            "f1_at_0.5":         test_m["f1"],
+            "f1_at_best_thresh":  test_f1_tuned,
+            "auc_roc":           test_m["auc_roc"],
+            "loss":              test_m["loss"],
         },
     }
     with open(output_dir / "results.json", "w") as f:
