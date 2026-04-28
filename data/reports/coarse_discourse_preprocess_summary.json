@@ -1,0 +1,39 @@
+{
+  "columns": [
+    "conversation_id",
+    "utterance_id",
+    "speaker",
+    "subreddit",
+    "title",
+    "reply_to",
+    "comment_depth",
+    "majority_link",
+    "annotation_types",
+    "annotation_links",
+    "ups",
+    "text",
+    "input_text",
+    "label",
+    "num_chars",
+    "num_words",
+    "split"
+  ],
+  "label_counts": {
+    "agreement": 5040,
+    "announcement": 2002,
+    "answer": 41162,
+    "appreciation": 8710,
+    "disagreement": 3422,
+    "elaboration": 19258,
+    "humor": 2417,
+    "negativereaction": 1896,
+    "other": 2049,
+    "question": 17594
+  },
+  "rows": 103550,
+  "split_counts": {
+    "test": 10444,
+    "train": 82838,
+    "val": 10268
+  }
+}
