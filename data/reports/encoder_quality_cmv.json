@@ -1,0 +1,40 @@
+{
+  "domain": "cmv_test_comments",
+  "n_examples": 1629,
+  "predicted_id_counts": {
+    "announcement": 16,
+    "elaboration": 441,
+    "humor": 0,
+    "appreciation": 60,
+    "question": 237,
+    "answer": 586,
+    "agreement": 93,
+    "negativereaction": 15,
+    "disagreement": 176,
+    "other": 5
+  },
+  "labels": [
+    "announcement",
+    "elaboration",
+    "humor",
+    "appreciation",
+    "question",
+    "answer",
+    "agreement",
+    "negativereaction",
+    "disagreement",
+    "other"
+  ],
+  "silhouette": {
+    "score": 0.14405715465545654,
+    "n_samples": 1629
+  },
+  "knn_accuracy": {
+    "mean": 0.914723926380368,
+    "std": 0.00897468640388207,
+    "n_samples": 1629,
+    "k": 5,
+    "n_splits": 5
+  },
+  "note": "kNN target is the encoder's own predicted_id (no gold labels on CMV) \u2014 high accuracy means the latent is internally consistent with the argmax; low accuracy means the argmax is unstable in the latent geometry."
+}

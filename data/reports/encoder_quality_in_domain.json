@@ -1,0 +1,275 @@
+{
+  "domain": "cornell_coarse_discourse_held_out",
+  "n_examples": 15533,
+  "macro_f1": 0.4550436186092551,
+  "micro_accuracy": 0.6230605806991566,
+  "per_class": [
+    {
+      "label": "announcement",
+      "precision": 0.35260115606936415,
+      "recall": 0.2147887323943662,
+      "f1": 0.26695842450765866,
+      "support": 284
+    },
+    {
+      "label": "elaboration",
+      "precision": 0.4313050133945656,
+      "recall": 0.39907932011331443,
+      "f1": 0.41456685672245724,
+      "support": 2824
+    },
+    {
+      "label": "humor",
+      "precision": 0.22040816326530613,
+      "recall": 0.15835777126099707,
+      "f1": 0.18430034129692832,
+      "support": 341
+    },
+    {
+      "label": "appreciation",
+      "precision": 0.7531787584143605,
+      "recall": 0.7398971344599559,
+      "f1": 0.7464788732394366,
+      "support": 1361
+    },
+    {
+      "label": "question",
+      "precision": 0.727445997458704,
+      "recall": 0.8592870544090057,
+      "f1": 0.7878892138310684,
+      "support": 2665
+    },
+    {
+      "label": "answer",
+      "precision": 0.6875289039617697,
+      "recall": 0.7172724348665166,
+      "f1": 0.7020857929948838,
+      "support": 6218
+    },
+    {
+      "label": "agreement",
+      "precision": 0.5483405483405484,
+      "recall": 0.5006587615283268,
+      "f1": 0.5234159779614325,
+      "support": 759
+    },
+    {
+      "label": "negativereaction",
+      "precision": 0.366412213740458,
+      "recall": 0.35036496350364965,
+      "f1": 0.35820895522388063,
+      "support": 274
+    },
+    {
+      "label": "disagreement",
+      "precision": 0.3780160857908847,
+      "recall": 0.28256513026052105,
+      "f1": 0.32339449541284404,
+      "support": 499
+    },
+    {
+      "label": "other",
+      "precision": 0.3069306930693069,
+      "recall": 0.2012987012987013,
+      "f1": 0.24313725490196075,
+      "support": 308
+    }
+  ],
+  "mean_confidence_on_gold_per_class": [
+    {
+      "label": "announcement",
+      "mean_conf_on_gold": 0.25061121582984924,
+      "support": 284
+    },
+    {
+      "label": "elaboration",
+      "mean_conf_on_gold": 0.39344438910484314,
+      "support": 2824
+    },
+    {
+      "label": "humor",
+      "mean_conf_on_gold": 0.1644495129585266,
+      "support": 341
+    },
+    {
+      "label": "appreciation",
+      "mean_conf_on_gold": 0.7268494367599487,
+      "support": 1361
+    },
+    {
+      "label": "question",
+      "mean_conf_on_gold": 0.806867241859436,
+      "support": 2665
+    },
+    {
+      "label": "answer",
+      "mean_conf_on_gold": 0.707028329372406,
+      "support": 6218
+    },
+    {
+      "label": "agreement",
+      "mean_conf_on_gold": 0.4900558590888977,
+      "support": 759
+    },
+    {
+      "label": "negativereaction",
+      "mean_conf_on_gold": 0.3313223421573639,
+      "support": 274
+    },
+    {
+      "label": "disagreement",
+      "mean_conf_on_gold": 0.28668439388275146,
+      "support": 499
+    },
+    {
+      "label": "other",
+      "mean_conf_on_gold": 0.18808668851852417,
+      "support": 308
+    }
+  ],
+  "confusion_matrix": [
+    [
+      61,
+      35,
+      4,
+      3,
+      117,
+      52,
+      1,
+      4,
+      3,
+      4
+    ],
+    [
+      35,
+      1127,
+      48,
+      81,
+      167,
+      1104,
+      109,
+      42,
+      83,
+      28
+    ],
+    [
+      2,
+      56,
+      54,
+      29,
+      41,
+      111,
+      9,
+      14,
+      8,
+      17
+    ],
+    [
+      6,
+      110,
+      14,
+      1007,
+      55,
+      102,
+      38,
+      9,
+      1,
+      19
+    ],
+    [
+      21,
+      72,
+      17,
+      35,
+      2290,
+      195,
+      7,
+      15,
+      4,
+      9
+    ],
+    [
+      35,
+      858,
+      75,
+      77,
+      368,
+      4460,
+      129,
+      55,
+      110,
+      51
+    ],
+    [
+      4,
+      130,
+      4,
+      48,
+      21,
+      157,
+      380,
+      4,
+      5,
+      6
+    ],
+    [
+      2,
+      46,
+      13,
+      19,
+      22,
+      45,
+      9,
+      96,
+      16,
+      6
+    ],
+    [
+      0,
+      123,
+      4,
+      4,
+      18,
+      187,
+      8,
+      14,
+      141,
+      0
+    ],
+    [
+      7,
+      56,
+      12,
+      34,
+      49,
+      74,
+      3,
+      9,
+      2,
+      62
+    ]
+  ],
+  "labels": [
+    "announcement",
+    "elaboration",
+    "humor",
+    "appreciation",
+    "question",
+    "answer",
+    "agreement",
+    "negativereaction",
+    "disagreement",
+    "other"
+  ],
+  "silhouette": {
+    "score": 0.059589795768260956,
+    "n_samples": 5000
+  },
+  "knn_accuracy": {
+    "mean": 0.6220000000000001,
+    "std": 0.006292853089020915,
+    "n_samples": 5000,
+    "k": 5,
+    "n_splits": 5
+  }
+}
