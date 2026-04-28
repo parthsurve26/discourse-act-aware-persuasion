@@ -36,6 +36,14 @@ def preprocess_winning_arguments(output_path: Path, seed: int = 42) -> Path:
             "columns": list(df.columns),
             "split_counts": df["split"].value_counts(dropna=False).to_dict(),
             "label_counts": df["label"].value_counts(dropna=False).to_dict(),
+            "num_delta_ack_comments_total": int(df["num_delta_ack_comments"].sum()),
+            "rows_with_any_delta_ack": int((df["num_delta_ack_comments"] > 0).sum()),
+            "rows_with_any_delta_ack_by_label": (
+                df.assign(any_ack=df["num_delta_ack_comments"] > 0)
+                .groupby("label")["any_ack"]
+                .sum()
+                .to_dict()
+            ),
         },
     )
     return output_path

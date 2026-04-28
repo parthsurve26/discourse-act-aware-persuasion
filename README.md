@@ -91,6 +91,22 @@ The exact commands are listed at the end of this README.
 - inspection reports are written to `data/reports/`
 - baseline artifacts are written to `data/models/`
 
+## Neural modeling plan
+
+The repo now supports the next step in the project:
+
+- train a discourse encoder on `Vijayrathank/reddit_discourse_cleaned`
+- train a fresh BERT persuasion model on Winning Arguments
+- train a fresh comment-level `BiLSTM + attention` persuasion model
+- train a discourse-aware `BiLSTM + attention` persuasion model using the discourse encoder checkpoint
+
+The discourse encoder loader supports either:
+
+- direct download from Hugging Face
+- a local parquet path if you download the dataset manually
+
+If you want comment-level persuasion models, rerun Winning Arguments preprocessing first so the parquet includes `comment_texts` and related thread fields.
+
 ## Exact commands to run first
 
 ```bash
@@ -100,4 +116,8 @@ python scripts/preprocess_datasets.py --dataset winning-arguments
 python scripts/preprocess_datasets.py --dataset coarse-discourse
 python scripts/train_baselines.py --dataset winning-arguments
 python scripts/train_baselines.py --dataset coarse-discourse
+python scripts/train_discourse_encoder.py
+python scripts/train_persuasion.py --architecture fresh-bert
+python scripts/train_persuasion.py --architecture fresh-bilstm-attn
+python scripts/train_persuasion.py --architecture discourse-bilstm-attn --discourse-checkpoint data/models/discourse_encoder/discourse_encoder.pt
 ```
