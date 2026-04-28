@@ -116,9 +116,13 @@ class TransitionAwareThreadTransformer(nn.Module):
         use_discourse_acts: bool = False,
         num_acts: int = 10,
         num_labels: int = 2,
+        use_speaker_bias: bool = True,
+        use_distance_bias: bool = True,
     ):
         super().__init__()
         self.use_discourse_acts = use_discourse_acts
+        self.use_speaker_bias = use_speaker_bias
+        self.use_distance_bias = use_distance_bias
         self.num_distance_buckets = num_distance_buckets
 
         # +1 length budget for the prepended [CLS_thread] token.
@@ -132,15 +136,16 @@ class TransitionAwareThreadTransformer(nn.Module):
 
         # Transition bias tables. All produce a scalar that is added to the
         # raw attention score for the (i, j) pair, broadcast across heads.
-        self.speaker_pair_bias = nn.Embedding(3 * 3, 1)        # 3 speaker types, pair index = a*3+b
-        self.distance_bias = nn.Embedding(2 * num_distance_buckets, 1)
+        if use_speaker_bias:
+            self.speaker_pair_bias = nn.Embedding(3 * 3, 1)    # 3 speaker types, pair index = a*3+b
+            nn.init.zeros_(self.speaker_pair_bias.weight)
+        if use_distance_bias:
+            self.distance_bias = nn.Embedding(2 * num_distance_buckets, 1)
+            nn.init.zeros_(self.distance_bias.weight)
         if use_discourse_acts:
             # +1 for the [CLS_thread] "act" sentinel
             self.act_pair_bias = nn.Embedding((num_acts + 1) ** 2, 1)
             self.num_acts = num_acts
-        nn.init.zeros_(self.speaker_pair_bias.weight)
-        nn.init.zeros_(self.distance_bias.weight)
-        if use_discourse_acts:
             nn.init.zeros_(self.act_pair_bias.weight)
 
         self.layers = nn.ModuleList(
@@ -164,15 +169,20 @@ class TransitionAwareThreadTransformer(nn.Module):
     ) -> torch.Tensor:
         B, N = is_op.shape
         device = is_op.device
-        idx = torch.arange(N, device=device)
-        diff = idx.unsqueeze(0) - idx.unsqueeze(1)             # (N, N), j - i
-        dist_bucket = _bucket_distance(diff, self.num_distance_buckets)  # (N, N)
-        dist_b = self.distance_bias(dist_bucket).squeeze(-1)             # (N, N)
+        bias = torch.zeros(B, N, N, device=device)
 
-        sp_pair = is_op.unsqueeze(2) * 3 + is_op.unsqueeze(1)            # (B, N, N)
-        sp_b = self.speaker_pair_bias(sp_pair).squeeze(-1)               # (B, N, N)
+        if self.use_distance_bias:
+            idx = torch.arange(N, device=device)
+            diff = idx.unsqueeze(0) - idx.unsqueeze(1)             # (N, N), j - i
+            dist_bucket = _bucket_distance(diff, self.num_distance_buckets)  # (N, N)
+            dist_b = self.distance_bias(dist_bucket).squeeze(-1)             # (N, N)
+            bias = bias + dist_b.unsqueeze(0)
 
-        bias = sp_b + dist_b.unsqueeze(0)
+        if self.use_speaker_bias:
+            sp_pair = is_op.unsqueeze(2) * 3 + is_op.unsqueeze(1)            # (B, N, N)
+            sp_b = self.speaker_pair_bias(sp_pair).squeeze(-1)               # (B, N, N)
+            bias = bias + sp_b
+
         if self.use_discourse_acts and acts is not None:
             act_pair = acts.unsqueeze(2) * (self.num_acts + 1) + acts.unsqueeze(1)
             bias = bias + self.act_pair_bias(act_pair).squeeze(-1)

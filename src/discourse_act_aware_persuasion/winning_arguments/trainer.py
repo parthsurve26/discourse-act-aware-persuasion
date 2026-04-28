@@ -24,7 +24,21 @@ def _binary_metrics(probs: np.ndarray, labels: np.ndarray) -> Dict[str, float]:
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
 
     auc = _roc_auc(probs, labels)
-    return {"accuracy": acc, "precision": precision, "recall": recall, "f1": f1, "auc": auc}
+
+    if labels.size:
+        clipped = np.clip(probs, 1e-7, 1.0 - 1e-7)
+        ce = float(-(labels * np.log(clipped) + (1 - labels) * np.log(1 - clipped)).mean())
+    else:
+        ce = 0.0
+
+    return {
+        "accuracy": acc,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+        "auc": auc,
+        "cross_entropy": ce,
+    }
 
 
 def _roc_auc(probs: np.ndarray, labels: np.ndarray) -> float:

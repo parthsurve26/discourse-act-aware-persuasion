@@ -76,6 +76,8 @@ def run_sweep(
             dropout=hp["dropout"],
             max_comments=args.max_comments,
             use_discourse_acts=(variant == "with_discourse"),
+            use_speaker_bias=not args.no_speaker_bias,
+            use_distance_bias=not args.no_distance_bias,
         )
 
         trainable = [p for p in model.parameters() if p.requires_grad]

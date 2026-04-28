@@ -60,6 +60,8 @@ def _build_model(variant: str, args, encoder) -> TransitionAwareThreadTransforme
         dropout=args.dropout,
         max_comments=args.max_comments,
         use_discourse_acts=(variant == "with_discourse"),
+        use_speaker_bias=not args.no_speaker_bias,
+        use_distance_bias=not args.no_distance_bias,
     )
 
 
@@ -106,6 +108,12 @@ def _add_common_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--discourse-repo-id", default="Vijayrathank/discourse_act_classifier")
     p.add_argument("--discourse-filename", default="model.pt")
     p.add_argument("--discourse-local-path", default=None)
+
+    # Bias ablation flags (proposal ablation: model without transition-aware attention)
+    p.add_argument("--no-speaker-bias", action="store_true",
+                   help="Disable the (speaker_i, speaker_j) attention bias table.")
+    p.add_argument("--no-distance-bias", action="store_true",
+                   help="Disable the bucketed turn-distance attention bias table.")
 
     # Predict mode
     p.add_argument("--thread-json", default=None,
