@@ -14,7 +14,7 @@ Research on whether discourse act structure improves persuasion prediction on r/
 |---|---|
 | Discourse act classifier weights | [`Vijayrathank/discourse_act_classifier`](https://huggingface.co/Vijayrathank/discourse_act_classifier) |
 | Persuasion model weights | [`Vijayrathank/persuasion_model_with_discoarse_cls`](https://huggingface.co/Vijayrathank/persuasion_model_with_discoarse_cls) |
-| Reddit discourse dataset | [`Vijayrathank/persuasion_model_without_discoarse_cls`](https://huggingface.co/Vijayrathank/persuasion_model_without_discoarse_cls) |
+| Persuasion model without dist and speaker bias | [`Vijayrathank/persuasion_model_without_discoarse_cls`](https://huggingface.co/Vijayrathank/persuasion_model_without_discoarse_cls) |
 
 Weights are downloaded automatically on first run — no manual setup required.
 
