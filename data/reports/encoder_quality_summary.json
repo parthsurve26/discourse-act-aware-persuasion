@@ -1,0 +1,52 @@
+{
+  "in_domain": {
+    "domain": "cornell_coarse_discourse_held_out",
+    "n_examples": 15533,
+    "macro_f1": 0.4550436186092551,
+    "micro_accuracy": 0.6230605806991566,
+    "silhouette": {
+      "score": 0.059589795768260956,
+      "n_samples": 5000
+    },
+    "knn_accuracy": {
+      "mean": 0.6220000000000001,
+      "std": 0.006292853089020915,
+      "n_samples": 5000,
+      "k": 5,
+      "n_splits": 5
+    }
+  },
+  "out_of_domain": {
+    "domain": "cmv_test_comments",
+    "n_examples": 1629,
+    "predicted_id_counts": {
+      "announcement": 16,
+      "elaboration": 441,
+      "humor": 0,
+      "appreciation": 60,
+      "question": 237,
+      "answer": 586,
+      "agreement": 93,
+      "negativereaction": 15,
+      "disagreement": 176,
+      "other": 5
+    },
+    "silhouette": {
+      "score": 0.14405715465545654,
+      "n_samples": 1629
+    },
+    "knn_accuracy": {
+      "mean": 0.914723926380368,
+      "std": 0.00897468640388207,
+      "n_samples": 1629,
+      "k": 5,
+      "n_splits": 5
+    }
+  },
+  "interpretation_matrix": {
+    "in_domain_healthy + ood_healthy": "encoder is fine; downstream issues are in the persuasion transformer",
+    "in_domain_healthy + ood_weak": "domain shift; predicted ids on CMV are noisy",
+    "in_domain_weak + ood_weak": "classifier itself is the bottleneck",
+    "in_domain_weak + ood_healthy": "anomalous; investigate"
+  }
+}

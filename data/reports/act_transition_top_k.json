@@ -1,0 +1,227 @@
+{
+  "labels": [
+    "announcement",
+    "elaboration",
+    "humor",
+    "appreciation",
+    "question",
+    "answer",
+    "agreement",
+    "negativereaction",
+    "disagreement",
+    "other"
+  ],
+  "k": 10,
+  "by_delta": {
+    "top_winning": [
+      {
+        "act_i": "answer",
+        "act_j": "appreciation",
+        "value": 0.03252814872997689
+      },
+      {
+        "act_i": "question",
+        "act_j": "question",
+        "value": 0.02436501702012783
+      },
+      {
+        "act_i": "question",
+        "act_j": "answer",
+        "value": 0.019612463995800515
+      },
+      {
+        "act_i": "question",
+        "act_j": "appreciation",
+        "value": 0.017543859649084333
+      },
+      {
+        "act_i": "answer",
+        "act_j": "question",
+        "value": 0.01504320502750131
+      },
+      {
+        "act_i": "elaboration",
+        "act_j": "question",
+        "value": 0.01163262634197957
+      },
+      {
+        "act_i": "agreement",
+        "act_j": "elaboration",
+        "value": 0.01157371039537081
+      },
+      {
+        "act_i": "disagreement",
+        "act_j": "answer",
+        "value": 0.010781618224649592
+      },
+      {
+        "act_i": "answer",
+        "act_j": "agreement",
+        "value": 0.009806231997900258
+      },
+      {
+        "act_i": "elaboration",
+        "act_j": "appreciation",
+        "value": 0.009380727939235271
+      }
+    ],
+    "top_losing": [
+      {
+        "act_i": "answer",
+        "act_j": "elaboration",
+        "value": -0.05056952081673868
+      },
+      {
+        "act_i": "elaboration",
+        "act_j": "disagreement",
+        "value": -0.026440167583045862
+      },
+      {
+        "act_i": "disagreement",
+        "act_j": "disagreement",
+        "value": -0.0188858339878899
+      },
+      {
+        "act_i": "answer",
+        "act_j": "answer",
+        "value": -0.01639172558250873
+      },
+      {
+        "act_i": "elaboration",
+        "act_j": "answer",
+        "value": -0.014257659072981946
+      },
+      {
+        "act_i": "question",
+        "act_j": "elaboration",
+        "value": -0.009688400104682748
+      },
+      {
+        "act_i": "question",
+        "act_j": "disagreement",
+        "value": -0.006945535480462858
+      },
+      {
+        "act_i": "agreement",
+        "act_j": "disagreement",
+        "value": -0.006762241424434741
+      },
+      {
+        "act_i": "other",
+        "act_j": "elaboration",
+        "value": -0.0059701492537135225
+      },
+      {
+        "act_i": "agreement",
+        "act_j": "other",
+        "value": -0.0059701492537135225
+      }
+    ]
+  },
+  "by_log_odds": {
+    "top_winning": [
+      {
+        "act_i": "question",
+        "act_j": "appreciation",
+        "value": 16.680214626109667
+      },
+      {
+        "act_i": "elaboration",
+        "act_j": "negativereaction",
+        "value": 15.69938546809793
+      },
+      {
+        "act_i": "appreciation",
+        "act_j": "appreciation",
+        "value": 15.69938546809793
+      },
+      {
+        "act_i": "agreement",
+        "act_j": "question",
+        "value": 15.293920435989751
+      },
+      {
+        "act_i": "announcement",
+        "act_j": "agreement",
+        "value": 14.600773483429728
+      },
+      {
+        "act_i": "elaboration",
+        "act_j": "announcement",
+        "value": 14.600773483429728
+      },
+      {
+        "act_i": "appreciation",
+        "act_j": "disagreement",
+        "value": 14.600773483429728
+      },
+      {
+        "act_i": "agreement",
+        "act_j": "elaboration",
+        "value": 1.0779319729313752
+      },
+      {
+        "act_i": "negativereaction",
+        "act_j": "answer",
+        "value": 1.0779318624314125
+      },
+      {
+        "act_i": "answer",
+        "act_j": "appreciation",
+        "value": 1.0353724330053222
+      }
+    ],
+    "top_losing": [
+      {
+        "act_i": "other",
+        "act_j": "elaboration",
+        "value": -15.60228265317829
+      },
+      {
+        "act_i": "agreement",
+        "act_j": "other",
+        "value": -15.60228265317829
+      },
+      {
+        "act_i": "answer",
+        "act_j": "announcement",
+        "value": -15.60228265317829
+      },
+      {
+        "act_i": "elaboration",
+        "act_j": "other",
+        "value": -15.60228265317829
+      },
+      {
+        "act_i": "answer",
+        "act_j": "other",
+        "value": -14.909135640118304
+      },
+      {
+        "act_i": "question",
+        "act_j": "negativereaction",
+        "value": -14.909135640118304
+      },
+      {
+        "act_i": "announcement",
+        "act_j": "disagreement",
+        "value": -14.909135640118304
+      },
+      {
+        "act_i": "agreement",
+        "act_j": "disagreement",
+        "value": -1.4069742220234018
+      },
+      {
+        "act_i": "elaboration",
+        "act_j": "disagreement",
+        "value": -1.001509417034189
+      },
+      {
+        "act_i": "disagreement",
+        "act_j": "disagreement",
+        "value": -1.0015094005484764
+      }
+    ]
+  }
+}

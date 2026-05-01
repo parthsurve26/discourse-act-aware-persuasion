@@ -1,0 +1,49 @@
+{
+  "columns": [
+    "conversation_id",
+    "prediction_unit",
+    "pair_id",
+    "argument_thread_id",
+    "labeled_utterance_ids",
+    "speaker_ids",
+    "comment_ids",
+    "comment_texts",
+    "comment_speakers",
+    "comment_is_op",
+    "comment_is_delta_ack",
+    "op_user_id",
+    "op_title",
+    "op_text_body",
+    "conversation_pair_ids",
+    "text",
+    "input_text",
+    "text_ack_masked",
+    "input_text_ack_masked",
+    "label",
+    "train_flag",
+    "num_labeled_utterances",
+    "num_kept_comments",
+    "num_delta_ack_comments",
+    "num_chars",
+    "num_words",
+    "num_chars_ack_masked",
+    "num_words_ack_masked",
+    "split"
+  ],
+  "label_counts": {
+    "0": 4263,
+    "1": 4263
+  },
+  "num_delta_ack_comments_total": 2688,
+  "rows": 8526,
+  "rows_with_any_delta_ack": 2653,
+  "rows_with_any_delta_ack_by_label": {
+    "0": 35,
+    "1": 2618
+  },
+  "split_counts": {
+    "test": 838,
+    "train": 6912,
+    "val": 776
+  }
+}

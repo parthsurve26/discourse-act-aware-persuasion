@@ -1,0 +1,164 @@
+{
+  "conversation_meta_keys": [
+    "op-text-body",
+    "op-title",
+    "op-userID",
+    "pair_ids",
+    "train"
+  ],
+  "invalid_prediction_unit_count": 0,
+  "labeled_utterance_pair_id_length_counts": {
+    "1": 19000,
+    "2": 626,
+    "3": 69,
+    "4": 18,
+    "5": 1
+  },
+  "num_conversations": 3051,
+  "num_pair_ids": 4263,
+  "num_speakers": 34911,
+  "num_utterances": 293297,
+  "pair_conversation_count_counts": {
+    "1": 4263
+  },
+  "pair_label_shapes_top_20": {
+    "0:1,1:2": 1442,
+    "0:1,1:3": 145,
+    "0:1,1:4": 320,
+    "0:1,1:5": 36,
+    "0:1,1:6": 102,
+    "0:1,1:8": 33,
+    "0:2,1:2": 866,
+    "0:2,1:3": 107,
+    "0:2,1:4": 261,
+    "0:2,1:5": 25,
+    "0:2,1:6": 112,
+    "0:2,1:8": 40,
+    "0:3,1:2": 216,
+    "0:3,1:3": 29,
+    "0:3,1:4": 64,
+    "0:3,1:6": 34,
+    "0:4,1:2": 89,
+    "0:4,1:4": 43,
+    "0:5,1:2": 51,
+    "0:6,1:2": 25
+  },
+  "pair_top_level_thread_count_counts": {
+    "2": 4263
+  },
+  "prediction_unit_label_counts": {
+    "0": 4263,
+    "1": 4263
+  },
+  "recommended_prediction_unit": "one row per (pair_id, top-level reply thread)",
+  "sample_conversations": [
+    {
+      "conversation_id": "t3_2ro9ux",
+      "conversation_meta": {
+        "op-text-body": "I can't remember the topic that spurred this discussion, but a friend and I were debating whether man-made things were natural. He took the position that they are unnatural. \n\nHe cited this definition by Merriam-Webster:  existing in nature and not made or caused by people : coming from nature (http://www.merriam-webster.com/dictionary/natural) as his basis for the distinction for natural vs. unnatural.\n\nHowever, I respectfully disagree with his position and furthermore that definition of natural. People arise from nature. Humankind's capacity to create, problem-solve, analyze, rationalize, and build also come from natural processes. How are the things we create unnatural? It is only through natural occurrences that we have this ability, why is it that we would give the credit of these things solely to man, as opposed to nature? We are not separate from nature, thus, how can any of our actions or creations be unnatural? If we were somehow separate from nature, I would understand the distinction between natural and man-made. However, I think unnatural and man-made are not synonyms by any means. It seems to me that man-made things MUST be natural due to our being part of nature. \n\nI would love to hear your arguments and to have my view changed if I am mistaken in my logic somewhere along the line.\n\nEDIT: Thanks for your responses lads. As many of you pointed out, our argument depends more on the context of the use of the word and I think that my friend and I were arguing about the semantics and definition more than our intended meaning behind use of the word \"natural\".",
+        "op-title": "CMV: Anything that is man-made is natural.",
+        "op-userID": "seanyowens",
+        "pair_ids": [
+          "p_1"
+        ],
+        "train": 1
+      },
+      "root_text_preview": "I can't remember the topic that spurred this discussion, but a friend and I were debating whether man-made things were natural. He took the position that they are unnatural. \n\nHe cited this definition"
+    },
+    {
+      "conversation_id": "t3_2ro0ti",
+      "conversation_meta": {
+        "op-text-body": "My wife has recently gotten deeply involved/obsessed with the healing properties of essential oils.  I am cursed with a common problem in that I am an extremely skeptical person.  I can't help but look at this product and see a pyramid scheme that takes advantage of the gullible.  All the shit my wife watches on these oils is carefully worded to make sure they don't make actual healing claims, I'm told this is because they aren't FDA approved and could get in trouble.  I've looked a little and haven't found anything debunking these oils but i still cannot help but feel they are total BS.  I would love to get more information from unbiased sources on this.  \n\nPlease change my view without just anecdotal testimonies. ",
+        "op-title": "CMV:Essential Oils are bullshit",
+        "op-userID": "GoldenTaint",
+        "pair_ids": [
+          "p_2"
+        ],
+        "train": 1
+      },
+      "root_text_preview": "My wife has recently gotten deeply involved/obsessed with the healing properties of essential oils.  I am cursed with a common problem in that I am an extremely skeptical person.  I can't help but loo"
+    },
+    {
+      "conversation_id": "t3_2rnr30",
+      "conversation_meta": {
+        "op-text-body": "Thinking about today's news: [BBC](http://www.bbc.com/news/live/world-europe-30710777), [Wikipedia](http://en.wikipedia.org/wiki/Charlie_Hebdo_shooting)\n\nI think France is in a tough spot in how to react to this. There would be even stronger calls for an anti-islam and anti-immigration policies. These event reminds people that they cannot depend on protection by government. I think it would be a shame to allow the many, who are afraid more then anything, to be swayed by xenophobic nationalists (which might have been the goal of the attack anyway). \n\nI think this, regardless of whether the weapons used by the attackers were owned legally, makes a good case for promoting a culture of a reasonable gun ownership and carrying. Say if 1 out of 5 people carried a gun with them, was well trained in its use and tested in his responsibility to prevent its misuse, and society upheld the value of these people as protectors, it would benefit the society more the the current state of legislature and culture of gun ownership in most of European countries. I also think this would be much better then increase in police numbers and rights as policemen are a very homogeneous group trained to stick together and the danger of even deepening the \"not one of us\" (pack) mentality and escalation of \"police state\".\nChange my view.\n\nPS: I am not here to talk about USA and its gun problems.\n\nEDIT: Awarded a delta to a comment which didn't refute this idea but led me to change my view that it would be best realized with paralyzing weapons rather then guns: http://www.reddit.com/r/changemyview/comments/2rnr30/cmv_i_think_the_paris_shooting_makes_a_good_case/cni3o83\n\n_____\n\n&gt; *Hello, users of CMV! This is a footnote from your moderators. We'd just like to remind you of a couple of things. Firstly, please remember to* ***[read through our rules](http://www.reddit.com/r/changemyview/wiki/rules)***. *If you see a comment that has broken one, it is more effective to report it than downvote it. Speaking of which,* ***[downvotes don't change views](http://www.reddit.com/r/changemyview/wiki/guidelines#wiki_upvoting.2Fdownvoting)****! If you are thinking about submitting a CMV yourself, please have a look through our* ***[popular topics wiki](http://www.reddit.com/r/changemyview/wiki/populartopics)*** *first. Any questions or concerns? Feel free to* ***[message us](http://www.reddit.com/message/compose?to=/r/changemyview)***. *Happy CMVing!*",
+        "op-title": "CMV: I think the Paris shooting makes a good case for culture of responsible gun ownership any carrying.",
+        "op-userID": "rrockethr",
+        "pair_ids": [
+          "p_3"
+        ],
+        "train": 1
+      },
+      "root_text_preview": "Thinking about today's news: [BBC](http://www.bbc.com/news/live/world-europe-30710777), [Wikipedia](http://en.wikipedia.org/wiki/Charlie_Hebdo_shooting)\n\nI think France is in a tough spot in how to re"
+    },
+    {
+      "conversation_id": "t3_2rnfn0",
+      "conversation_meta": {
+        "op-text-body": "I've been thinking about this issue for a while. The sentence in the title is an over-simplification of the view, but I'll elaborate more here. Technically it's a two-part view:\n1) Explaining causation is not \"blaming\" the victim.\n2) Explaining causation is a worthwhile endeavor.\n\nI'd be happy to have either view changed - though if view 1 is changed, I'd probably change my mind on view 2. (It'll be easier to change my mind, in other words, about view 2 than view 1 \u2013 I\u2019m not certain that it\u2019s a worthwhile endeavor.)\n\nLet me start off by saying that I understand the issues with victim blaming. There's an unfortunate tendency that I\u2019ve noticed \u2013 particularly on the Internet, but occasionally in person as well \u2013 to blame the victims of terrible situations. We\u2019re seeing it with responses to the police murders of black citizens (people trying to find a reason why the person was shot), and we see it with victims of rape (people say: you shouldn\u2019t have been so drunk, or you shouldn\u2019t have been in that area of town). There are all sorts of possible explanations as to why victim blaming occurs; one of the most convincing to me is that these occurrences cause a sort of cognitive dissonance in our minds where bad things happen to people who don\u2019t deserve it. We like to think of our world as \u201cjust\u201d in some way, so we come up with reasons why these people \u201cDeserved\u201d what they got. People rarely go so far as to say a woman \u201cdeserved\u201d to be raped, but there\u2019s a certain amount of \u201cotherization\u201d and lack of empathy that goes on \u2013 a sense that \u201cwell, that wouldn\u2019t have happened to me, because I would\u2019ve been more careful\u201d. Additionally, it blames the victim for something that you should be blaming the perpetrator for. And that\u2019s all bad.\n\nOn the other hand, it remains the case that the world is not a just place. Yes, we can work towards justice; we can work towards eliminating racism \u2013 overt or structural \u2013 and we can work towards a society in which women feel safer. And we absolutely should. In the meantime, however, it is important to understand lines of causation. I\u2019m not going with a very complicated definition of causation here: basically a model in which two events or situations occur \u2013 A and B \u2013 and one event (B) would not have occurred the other (A) had not occurred. A caused B. (I\u2019m aware there are logical or philosophical arguments against this model, but that\u2019s not the view I\u2019m trying to have changed; if you can make a compelling argument about the relevant views using those points, go ahead.)\n\nThe case I often think of concerns myself and friends of mine. I live in a large city. It is safe, for the most part, but there are certain areas that you shouldn\u2019t walk in at night, because you might get mugged. Both myself and a friend of mine have been mugged while walking through these areas. The causation is: if we hadn\u2019t been walking through those areas, we wouldn\u2019t have gotten mugged. So we don\u2019t walk through those areas at night anymore. It\u2019s still possible that we\u2019ll get mugged elsewhere, but in my mind, we\u2019ve decreased our chances, which is a good thing. We didn\u2019t deserve to get mugged before, but changing our behavior prevented us from getting mugged again.\n\nThus, explaining causation is not justification. It\u2019s simply understanding the chain of events that led to another event.\n\nFinally, my second view is that it\u2019s a worthwhile endeavor. As I said, we avoid those dangerous areas at night now, and I feel we\u2019ve decreased our chances of getting mugged. We understood the causation behind a negative situation, and we changed our behavior accordingly. Ideally, all areas would be safe to walk in, but they\u2019re not, so we don\u2019t walk in the unsafe areas anymore. Yes, this has mildly restricted our behavior \u2013 but it\u2019s worth it to us, so that we don\u2019t get mugged. \n\nI understood these are hairy issues, and maybe there\u2019s a fine line between causation and justification. CMV.\n\nEDIT: Fixed a sentence.\n\n\nEDIT 2: Thank you - these have been really interesting and illuminating discussions, and forced me to reconsider the nuances of my view. I plan to give out more Deltas, because the latter part of my view has been changed somewhat. I don't think it's always a \"worthwhile endeavor\" - especially in cases of sexual assault, there's an unfortunate tendency of victims to blame themselves, and \"explaining causation\" to them doesn't really serve any purpose other than to increase unnecessary and unjustified guilt on their part. Many of these situations demand care and compassion. \n\nAs far as \"part 1\" of my view goes, I still stand by my original statement. Granted, people have pointed out inconsistencies in the term \"causation\" - but as I said, I'm not really trying to have a discussion about causation as a concept. I understand that it's very complex, and of course many factors go into a certain outcome. I am well aware of probabilistic models of events/outcomes; my point was never to say that \"avoid certain areas means you won't get mugged\", or something like that. It concerned a marginal decrease of risk - a change in probability. Furthermore, the point itself was actually that \"explaining causation is not victim blaming\", and this view has not been addressed sufficiently. I've changed my view to the point that I don't think \"explaining causation\" is always the appropriate response (particularly in traumatic cases like sexual assault). I do still think it's often important to explain causation before the fact, as some users have suggested as an alternative, simply to give people a good idea of what precautions they might want to take. Most specifically, no one has really addressed this notion of causation vs. justification. One person has said they're the same thing, but not really offered an explanation for that. \n\nAt any rate, I've enjoyed reading the responses so far; I'm aware this is a sensitive issue, and I'm glad discussions have remained pretty civil.\n\n_____\n\n&gt; *Hello, users of CMV! This is a footnote from your moderators. We'd just like to remind you of a couple of things. Firstly, please remember to* ***[read through our rules](http://www.reddit.com/r/changemyview/wiki/rules)***. *If you see a comment that has broken one, it is more effective to report it than downvote it. Speaking of which,* ***[downvotes don't change views](http://www.reddit.com/r/changemyview/wiki/guidelines#wiki_upvoting.2Fdownvoting)****! If you are thinking about submitting a CMV yourself, please have a look through our* ***[popular topics wiki](http://www.reddit.com/r/changemyview/wiki/populartopics)*** *first. Any questions or concerns? Feel free to* ***[message us](http://www.reddit.com/message/compose?to=/r/changemyview)***. *Happy CMVing!*",
+        "op-title": "CMV: Explaining causation is not \"blaming\" the victim, and it's a worthwhile endeavor.",
+        "op-userID": "cognitiveThizzonance",
+        "pair_ids": [
+          "p_5",
+          "p_4"
+        ],
+        "train": 1
+      },
+      "root_text_preview": "I've been thinking about this issue for a while. The sentence in the title is an over-simplification of the view, but I'll elaborate more here. Technically it's a two-part view:\n1) Explaining causatio"
+    },
+    {
+      "conversation_id": "t3_2rmy6e",
+      "conversation_meta": {
+        "op-text-body": "As an independent form of study, philosophy doesn't seem to have any practical applications. What value does philosophy have in the modern age, right now, aside from contemplating things. Is it truly worth it to invest a significant amount of time and money studying this field? \n\nThere do not seem to be any tangible applications or appreciable benefits from studying philosophy aside from personal growth and the expansion of one's intellectual perspective, which I argue can be gained without studying philosophy in a rigorously academic manner.  \n\nI often have read the argument that it is impossible to argue that philosophy is useless without using philosophy, or something along those lines.\n\nI acknowledge this. Yes, I am engaging in the use of philosophy right now, at this very moment. However, this does not provide an argument as to why it would be worthwhile to STUDY philosophy. \n\nWhat do you gain from studying philosophy that could not be gained from thoughtful introspection? \n\nCertainly, important tools have originated from philosophical study, such as the scientific method, and science could be described as a subset of philosophy itself but that isn't an argument against the lack of tangible benefits to be gained from studying philosophy.\n\nYou don't need to study philosophy to become a capable scientist. You shouldn't need to study philosophy to cultivate a reasonable set of moral principles, or to be thoughtful about the circumstances and situations you encounter in your life. \n\nEDIT: I didn't expect so many answers! I'll try to read them all before I get too tired.\n\n_____\n\n\n&gt; *Hello, users of CMV! This is a footnote from your moderators. We'd just like to remind you of a couple of things. Firstly, please remember to* ***[read through our rules](http://www.reddit.com/r/changemyview/wiki/rules)***. *If you see a comment that has broken one, it is more effective to report it than downvote it. Speaking of which,* ***[downvotes don't change views](http://www.reddit.com/r/changemyview/wiki/guidelines#wiki_upvoting.2Fdownvoting)****! If you are thinking about submitting a CMV yourself, please have a look through our* ***[popular topics wiki](http://www.reddit.com/r/changemyview/wiki/populartopics)*** *first. Any questions or concerns? Feel free to* ***[message us](http://www.reddit.com/message/compose?to=/r/changemyview)***. *Happy CMVing!*",
+        "op-title": "CMV: Philosophy has no tangible value as an academic field of study.",
+        "op-userID": "RazzzerBlade",
+        "pair_ids": [
+          "p_7",
+          "p_6"
+        ],
+        "train": 1
+      },
+      "root_text_preview": "As an independent form of study, philosophy doesn't seem to have any practical applications. What value does philosophy have in the modern age, right now, aside from contemplating things. Is it truly "
+    }
+  ],
+  "success_label_counts": {
+    "0": 7294,
+    "1": 12420
+  },
+  "train_flag_counts": {
+    "0": 542,
+    "1": 2509
+  },
+  "utterance_meta_keys": [
+    "approved_by",
+    "author_flair_css_class",
+    "author_flair_text",
+    "banned_by",
+    "controversiality",
+    "distinguished",
+    "downs",
+    "edited",
+    "gilded",
+    "likes",
+    "mod_reports",
+    "num_reports",
+    "pair_ids",
+    "replies",
+    "report_reasons",
+    "saved",
+    "score",
+    "score_hidden",
+    "subreddit",
+    "subreddit_id",
+    "success",
+    "ups",
+    "user_reports"
+  ],
+  "utterance_pair_id_length_counts": {
+    "0": 273583,
+    "1": 19000,
+    "2": 626,
+    "3": 69,
+    "4": 18,
+    "5": 1
+  }
+}
