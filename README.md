@@ -1,85 +1,54 @@
 # Discourse-Act-Aware Persuasion Modeling on r/ChangeMyView
 
-This project predicts whether an argument thread in r/ChangeMyView successfully changes the original poster’s view, using both text-based and discourse-aware modeling approaches.
+This project explores whether discourse structure helps predict persuasion success in Reddit discussions from r/ChangeMyView.
 
-The repository includes data ingestion, preprocessing, baseline training, neural modeling, and evaluation workflows for technical review and reproducibility.
+The main task is to predict whether a reply thread successfully changes the original poster's view. The repository includes data download, preprocessing, baseline models, neural models, and evaluation utilities.
 
-## Project Objective
+## What This Repo Contains
 
-Predict persuasion success at the argument-thread level while keeping the task definition faithful to the original matched-pair setup.
+- data download and inspection scripts
+- preprocessing pipelines for the core datasets
+- baseline machine learning models
+- neural persuasion models, including BiGRU and transformer-based variants
+- discourse-aware modeling components
+- analysis and reporting scripts
 
-## Repository Structure
-
-The repo is organized around scriptable experiments and reusable source code:
-
-- `scripts/` — command-line scripts for downloading data, preprocessing, training, and evaluation
-- `src/discourse_act_aware_persuasion/` — reusable project code used by the scripts
-- `data/processed/` — processed parquet datasets
-- `data/reports/` — inspection and diagnostic outputs
-- `data/models/` — trained model artifacts and metrics outputs
-- `docs/` — supplemental notes, including the Colab workflow
-
-## Dataset Summary
+## Datasets
 
 ### Winning Arguments
 
-Primary dataset used for persuasion prediction.
+This is the main dataset used for persuasion prediction.
 
-- Prediction unit: one row per `(pair_id, top-level reply thread)`
-- Label: `1` = successful persuasion, `0` = unsuccessful persuasion
-- Processed snapshot:
-  - 8,526 total rows
-  - 4,263 positive / 4,263 negative
-  - Train, validation, and test splits
+- task: predict persuasion success
+- label: `1` for successful persuasion, `0` for unsuccessful persuasion
+- prediction unit: one argument thread
 
 ### Cornell Coarse Discourse
 
-Used for discourse-act-related experimentation and discourse-aware modeling support.
-
-## Approach
-
-The workflow is organized into clear stages:
-
-1. Download datasets
-2. Inspect schema and task assumptions
-3. Preprocess data into deterministic parquet outputs
-4. Train baseline models
-5. Train neural persuasion models
-6. Integrate discourse-aware components
-
-A key design choice is keeping the Winning Arguments task at the paired argument-thread level instead of treating individual utterances as independent examples.
+This dataset is used for discourse-act related experiments and discourse-aware modeling.
 
 ## Models
 
-### Baselines
+The repository includes several model types:
 
-Run with:
+- baseline text models
+- a BiGRU persuasion model
+- transformer-based thread models
+- discourse-aware variants that incorporate discourse-act information
 
-```bash
-python scripts/train_baselines.py
+## Repository Structure
+
+```text
+scripts/                               runnable training and preprocessing scripts
+src/discourse_act_aware_persuasion/    reusable project code
+coarse_discourse_cls/                  discourse classifier code
+data/                                  processed data, reports, and model outputs
+notebooks/                             exploratory notebooks
 ```
-
-### Persuasion Models
-
-Run with `scripts/train_persuasion.py`:
-
-- `fresh-bert`
-- `fresh-bilstm-attn`
-- `discourse-bilstm-attn`
-
-### Discourse Encoder
-
-Run with:
-
-```bash
-python scripts/train_discourse_encoder.py
-```
-
-## Tech Stack
-
-Python, PyTorch, scikit-learn, Hugging Face Transformers, pandas, NumPy, Parquet, NLTK, spaCy
 
 ## Setup
+
+Run from the repository root:
 
 ```bash
 python -m venv .venv
@@ -92,51 +61,56 @@ python -m nltk.downloader punkt
 python -m spacy download en_core_web_sm
 ```
 
-## How to Run
+## Quick Start
 
-Run commands from the repository root.
+Download the datasets:
 
 ```bash
 python scripts/download_datasets.py
+```
+
+Inspect the main persuasion dataset:
+
+```bash
 python scripts/inspect_winning_arguments.py
+```
 
+Preprocess the data:
+
+```bash
 python scripts/preprocess_datasets.py --dataset winning-arguments
+python scripts/preprocess_datasets.py --dataset coarse-discourse
+```
 
+Train a baseline model:
+
+```bash
 python scripts/train_baselines.py --dataset winning-arguments
-python scripts/train_discourse_encoder.py
-
-python scripts/train_persuasion.py --architecture fresh-bert
 ```
 
-For expanded commands and Colab usage, see:
+Train the BiGRU persuasion model:
 
-```text
-docs/colab_run.md
+```bash
+python scripts/download_model.py
+python scripts/train_persuasion.py
 ```
 
-## Results
+Train a transformer-based persuasion model:
 
-The repository supports training and evaluation pipelines that write model artifacts and JSON metrics outputs to:
-
-```text
-data/models/
+```bash
+python scripts/train_winning_args_with_discourse.py
 ```
 
-Final benchmark results will be added after reproducible runs are finalized.
+## Outputs
 
-## Reviewer Quickstart
+The project writes outputs to:
 
-For a quick technical review:
-
-1. Complete setup.
-2. Download and inspect the data.
-3. Regenerate the Winning Arguments parquet file.
-4. Run one baseline model.
-5. Run one neural persuasion model.
-6. Confirm artifacts and metrics are written to `data/models/`.
+- `data/processed/` for processed datasets
+- `data/reports/` for inspection and analysis outputs
+- `data/models/` for trained models, checkpoints, and metrics
 
 ## Notes
 
-- Preprocessing assumptions are kept explicit and inspectable.
-- The project separates runnable scripts from reusable source code.
-- If the prediction-unit logic changes, preprocessing, diagnostics, and documentation should be updated together.
+- The project keeps runnable scripts separate from reusable source code.
+- The persuasion task is modeled at the argument-thread level.
+- Additional analysis scripts are available under `scripts/` for diagnostics and model inspection.
