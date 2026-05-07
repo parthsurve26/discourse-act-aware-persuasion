@@ -1,123 +1,149 @@
+Use this as your final `README.md`. It keeps the important parts, removes the clutter, and doesn’t make the project look unfinished. It’s based on the repo details you shared: project objective, dataset setup, model list, run flow, and results status. 
+
+````md
 # Discourse-Act-Aware Persuasion Modeling on r/ChangeMyView
 
-Clean starter repo for research on persuasion and discourse act modeling with ConvoKit, PyTorch, Hugging Face Transformers, scikit-learn, pandas, pyarrow/parquet, matplotlib, and tqdm.
+This project predicts whether an argument thread in r/ChangeMyView successfully changes the original poster’s view, using both text-based and discourse-aware modeling approaches.
 
-This first pass focuses on the boring but necessary pieces:
+The repository includes data ingestion, preprocessing, baseline training, neural modeling, and evaluation workflows for technical review and reproducibility.
 
-- dataset download
-- corpus inspection
-- preprocessing
-- train/val/test splits
-- baseline models
-- evaluation utilities
+## Project Objective
 
-The core datasets in this repo are:
+Predict persuasion success at the argument-thread level while keeping the task definition faithful to the original matched-pair setup.
 
-- Winning Arguments corpus
-- Cornell Coarse Discourse corpus
+## Repository Structure
 
-Awry CMV is intentionally left out of the core pipeline for now and should be treated as an optional future extension.
+```text
+scripts/                              Runnable CLI scripts
+src/discourse_act_aware_persuasion/   Reusable project code
+data/processed/                       Processed parquet datasets
+data/reports/                         Inspection and diagnostic outputs
+data/models/                          Model artifacts and metrics outputs
+docs/                                 Supplemental notes and Colab workflow
+````
 
-## Repository layout
+## Dataset Summary
 
-- `scripts/` runnable entry points
-- `src/` reusable library code
-- `data/` raw-cache pointers, processed parquet, reports, and model outputs
-- `notebooks/` exploratory notebooks
+### Winning Arguments
 
-## Winning Arguments structure check
+Primary dataset used for persuasion prediction.
 
-Before preprocessing, run the inspection script to verify the live corpus structure in your local ConvoKit install/cache:
+* Prediction unit: one row per `(pair_id, top-level reply thread)`
+* Label: `1` = successful persuasion, `0` = unsuccessful persuasion
+* Processed snapshot:
+
+  * 8,526 total rows
+  * 4,263 positive / 4,263 negative
+  * Train, validation, and test splits
+
+### Cornell Coarse Discourse
+
+Used for discourse-act-related experimentation and discourse-aware modeling support.
+
+## Approach
+
+The workflow is organized into clear stages:
+
+1. Download datasets
+2. Inspect schema and task assumptions
+3. Preprocess data into deterministic parquet outputs
+4. Train baseline models
+5. Train neural persuasion models
+6. Integrate discourse-aware components
+
+A key design choice is keeping the Winning Arguments task at the paired argument-thread level instead of treating individual utterances as independent examples.
+
+## Models
+
+### Baselines
+
+Run with:
 
 ```bash
-python scripts/inspect_winning_arguments.py
+python scripts/train_baselines.py
 ```
 
-Observed with ConvoKit 4.1.0 on the live `winning-args-corpus`:
+### Persuasion Models
 
-- each `Conversation` to correspond to one full r/ChangeMyView thread
-- conversation metadata to include `op-userID`, `op-text-body`, `op-title`, `pair_ids`, and `train`
-- utterance metadata to include `success`, `pair_ids`, and Reddit API fields
-- `success` is stored on comments that belong to a labeled argument thread, not on a single standalone prediction item
-- `pair_ids` is stored at both conversation and utterance level; some utterances belong to multiple pairs
-- each `pair_id` maps to exactly two top-level reply threads in the loaded corpus: one successful and one unsuccessful
-- all other comments to have `success = None`
-- ConvoKit casts some missing Reddit comment text to the string `"None"` during load; preprocessing drops empty / `"None"` thread text
-- the corpus to be loaded with `Corpus(filename=download("winning-args-corpus"))`
+Run with `scripts/train_persuasion.py`:
 
-The inspection script writes a JSON summary into `data/reports/` so the actual observed fields are documented alongside these assumptions.
+* `fresh-bert`
+* `fresh-bilstm-attn`
+* `discourse-bilstm-attn`
 
-## Preprocessing assumptions
+### Discourse Encoder
 
-The initial preprocessing pipeline makes a few simple, explicit choices:
+Run with:
 
-- the Winning Arguments prediction unit is one row per `(pair_id, top-level reply thread)`, not one row per comment
-- the label is whether that paired argument thread changed the OP's view: `1` for successful and `0` for unsuccessful
-- text for a Winning Arguments row is the OP title/body plus the labeled comments in that pair member's reply thread
-- this produces 8,526 rows in the verified corpus: 4,263 successful and 4,263 unsuccessful pair members
-- split by conversation, not by individual utterance, to avoid leakage
-- use the dataset-provided `train` flag for Winning Arguments where available
-- derive val/test from the remaining holdout conversations deterministically
-- keep the first baseline tasks text-centered and readable
-- store processed tables as parquet
+```bash
+python scripts/train_discourse_encoder.py
+```
 
-The important mismatch we found during verification: treating every `success != None` utterance as a separate training example is not faithful to the corpus task. It overweights longer argument threads and breaks the original matched-pair framing. The cleaned preprocessing now keeps the paired argument thread as the prediction unit while preserving `pair_id` for paired analyses.
+## Tech Stack
 
-These assumptions are conservative on purpose. They are meant to get us to a trustworthy baseline before we add richer discourse-aware modeling.
+Python, PyTorch, scikit-learn, Hugging Face Transformers, pandas, NumPy, Parquet, NLTK, spaCy
 
 ## Setup
 
-Create a virtual environment, then install dependencies:
-
 ```bash
+python -m venv .venv
+source .venv/bin/activate
+
+pip install --upgrade pip
 pip install -r requirements.txt
+
 python -m nltk.downloader punkt
 python -m spacy download en_core_web_sm
 ```
 
-## First run
+## How to Run
 
-1. Download the corpora.
-2. Inspect Winning Arguments.
-3. Preprocess each dataset to parquet.
-4. Train the baselines.
-
-The exact commands are listed at the end of this README.
-
-## Notes on outputs
-
-- raw corpus downloads are kept in ConvoKit’s cache by default
-- processed datasets are written to `data/processed/`
-- inspection reports are written to `data/reports/`
-- baseline artifacts are written to `data/models/`
-
-## Neural modeling plan
-
-The repo now supports the next step in the project:
-
-- train a discourse encoder on `Vijayrathank/reddit_discourse_cleaned`
-- train a fresh BERT persuasion model on Winning Arguments
-- train a fresh comment-level `BiLSTM + attention` persuasion model
-- train a discourse-aware `BiLSTM + attention` persuasion model using the discourse encoder checkpoint
-
-The discourse encoder loader supports either:
-
-- direct download from Hugging Face
-- a local parquet path if you download the dataset manually
-
-If you want comment-level persuasion models, rerun Winning Arguments preprocessing first so the parquet includes `comment_texts` and related thread fields.
-
-## Exact commands to run first
+Run commands from the repository root.
 
 ```bash
 python scripts/download_datasets.py
 python scripts/inspect_winning_arguments.py
+
 python scripts/preprocess_datasets.py --dataset winning-arguments
-python scripts/preprocess_datasets.py --dataset coarse-discourse
+
 python scripts/train_baselines.py --dataset winning-arguments
-python scripts/train_baselines.py --dataset coarse-discourse
 python scripts/train_discourse_encoder.py
+
 python scripts/train_persuasion.py --architecture fresh-bert
-python scripts/train_persuasion.py --architecture fresh-bilstm-attn
-python scripts/train_persuasion.py --architecture discourse-bilstm-attn --discourse-checkpoint data/models/discourse_encoder/discourse_encoder.pt
+```
+
+For expanded commands and Colab usage, see:
+
+```text
+docs/colab_run.md
+```
+
+## Results
+
+The repository supports training and evaluation pipelines that write model artifacts and JSON metrics outputs to:
+
+```text
+data/models/
+```
+
+Final benchmark results will be added after reproducible runs are finalized.
+
+## Reviewer Quickstart
+
+For a quick technical review:
+
+1. Complete setup.
+2. Download and inspect the data.
+3. Regenerate the Winning Arguments parquet file.
+4. Run one baseline model.
+5. Run one neural persuasion model.
+6. Confirm artifacts and metrics are written to `data/models/`.
+
+## Notes
+
+* Preprocessing assumptions are kept explicit and inspectable.
+* The project separates runnable scripts from reusable source code.
+* If the prediction-unit logic changes, preprocessing, diagnostics, and documentation should be updated together.
+
+```
 ```
